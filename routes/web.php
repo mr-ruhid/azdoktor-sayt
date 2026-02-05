@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\ProductTagController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\OrderController; // Yeni Sifariş Controlleri
 
 /*
 |--------------------------------------------------------------------------
@@ -106,20 +109,26 @@ Route::group(
 
             // --- E-Ticarət (Aptek) ---
 
-            // Xidmətlər (Satış) - Placeholder
-            Route::get('services', function() { return 'Xidmətlər (Satış)'; })->name('services.index');
+            // Xidmətlər (Resource)
+            Route::resource('services', ServiceController::class);
 
             // Məhsullar (Resource)
             Route::resource('products', ProductController::class);
 
-            // Məhsul Kateqoriyaları (Resource) - URL-də "_" istifadə edirik ki, route adı view ilə eyni olsun
+            // Məhsul Kateqoriyaları (Resource)
             Route::resource('product_categories', ProductCategoryController::class);
 
-            // Məhsul Teqləri (Resource) - URL-də "_" istifadə edirik ki, route adı view ilə eyni olsun
+            // Məhsul Teqləri (Resource)
             Route::resource('product_tags', ProductTagController::class);
 
-            Route::get('orders', function() { return 'Sifarişlər'; })->name('orders.index');
-            Route::get('coupons', function() { return 'Kuponlar'; })->name('coupons.index');
+            // Kuponlar (Resource)
+            Route::resource('coupons', CouponController::class);
+
+            // Sifarişlər (OrderController) - YENİ
+            Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+            Route::put('orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+            Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
             // --- İstifadəçilər ---
             Route::get('users', function() { return 'İstifadəçilər'; })->name('users.index');
@@ -160,7 +169,7 @@ Route::group(
 
         });
 
-        // --- Dillər & Tərcümə (Resource default naming işlədir) ---
+        // --- Dillər & Tərcümə ---
         Route::group(['prefix' => 'admin'], function() {
              Route::resource('languages', LanguageController::class);
 
