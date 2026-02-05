@@ -15,6 +15,11 @@ class Product extends Model
         'slug',
         'description',
         'short_description',
+        // SEO Fields (YENİ)
+        'seo_title',
+        'seo_description',
+        'seo_keywords',
+        // Digər
         'sku',
         'price',
         'sale_price',
@@ -26,7 +31,15 @@ class Product extends Model
         'is_featured'
     ];
 
-    public $translatable = ['name', 'description', 'short_description'];
+    // Bu sahələr tərcümə olunacaq
+    public $translatable = [
+        'name',
+        'description',
+        'short_description',
+        'seo_title',        // YENİ
+        'seo_description',  // YENİ
+        'seo_keywords'      // YENİ
+    ];
 
     protected $casts = [
         'gallery' => 'array',
@@ -36,13 +49,11 @@ class Product extends Model
         'sale_price' => 'decimal:2',
     ];
 
-    // Kateqoriya ilə əlaqə
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    // Teqlər ilə əlaqə
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'product_tag');

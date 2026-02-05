@@ -15,6 +15,9 @@ use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductCategoryController;
+use App\Http\Controllers\Admin\ProductTagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,10 +60,10 @@ Route::group(
             // Paylaşımlar (Resource)
             Route::resource('posts', PostController::class);
 
-            // Kateqoriyalar (Resource)
+            // Kateqoriyalar (Blog üçün)
             Route::resource('categories', CategoryController::class);
 
-            // Teqlər (Resource)
+            // Teqlər (Blog üçün)
             Route::resource('tags', TagController::class);
 
             Route::prefix('comments')->name('comments.')->group(function() {
@@ -103,12 +106,18 @@ Route::group(
 
             // --- E-Ticarət (Aptek) ---
 
-            // Xidmətlər (Satış)
+            // Xidmətlər (Satış) - Placeholder
             Route::get('services', function() { return 'Xidmətlər (Satış)'; })->name('services.index');
 
-            Route::get('products', function() { return 'Məhsullar'; })->name('products.index');
-            Route::get('product-categories', function() { return 'Məhsul Kateqoriyaları'; })->name('product_categories.index');
-            Route::get('product-tags', function() { return 'Məhsul Teqləri'; })->name('product_tags.index');
+            // Məhsullar (Resource)
+            Route::resource('products', ProductController::class);
+
+            // Məhsul Kateqoriyaları (Resource)
+            Route::resource('product-categories', ProductCategoryController::class);
+
+            // Məhsul Teqləri (Resource)
+            Route::resource('product-tags', ProductTagController::class);
+
             Route::get('orders', function() { return 'Sifarişlər'; })->name('orders.index');
             Route::get('coupons', function() { return 'Kuponlar'; })->name('coupons.index');
 
@@ -151,7 +160,7 @@ Route::group(
 
         });
 
-        // --- Dillər & Tərcümə ---
+        // --- Dillər & Tərcümə (Resource default naming işlədir) ---
         Route::group(['prefix' => 'admin'], function() {
              Route::resource('languages', LanguageController::class);
 

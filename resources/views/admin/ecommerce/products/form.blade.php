@@ -2,6 +2,9 @@
     <!-- SOL TƏRƏF: Məlumatlar -->
     <div class="col-lg-8">
         <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 font-weight-bold text-primary">Məhsul Məlumatları (Tərcümə)</h6>
+            </div>
             <div class="card-body">
                 <!-- Dil Tabları -->
                 <ul class="nav nav-tabs mb-3" role="tablist">
@@ -22,14 +25,14 @@
                         <div class="tab-pane fade {{ $index == 0 ? 'show active' : '' }}" id="main-content-{{ $lang->code }}">
                             <div class="mb-3">
                                 <label class="form-label">Məhsul Adı ({{ $lang->code }}) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="name[{{ $lang->code }}]"
+                                <input type="text" class="form-control form-control-lg" name="name[{{ $lang->code }}]"
                                        placeholder="Məs: Paracetamol 500mg"
                                        value="{{ $product ? $product->getTranslation('name', $lang->code, false) : old('name.'.$lang->code) }}"
                                        {{ $lang->is_default ? 'required' : '' }}>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Qısa Təsvir ({{ $lang->code }})</label>
-                                <textarea class="form-control" name="short_description[{{ $lang->code }}]" rows="3">{{ $product ? $product->getTranslation('short_description', $lang->code, false) : old('short_description.'.$lang->code) }}</textarea>
+                                <textarea class="form-control" name="short_description[{{ $lang->code }}]" rows="3" placeholder="Siyahıda görünən qısa məlumat...">{{ $product ? $product->getTranslation('short_description', $lang->code, false) : old('short_description.'.$lang->code) }}</textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Ətraflı Təsvir ({{ $lang->code }})</label>
@@ -50,22 +53,78 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Qiymət (AZN) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" class="form-control" name="price" value="{{ $product->price ?? old('price') }}" required>
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control" name="price" value="{{ $product->price ?? old('price') }}" required>
+                            <span class="input-group-text">₼</span>
+                        </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Endirimli Qiymət (AZN)</label>
-                        <input type="number" step="0.01" class="form-control" name="sale_price" value="{{ $product->sale_price ?? old('sale_price') }}">
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control" name="sale_price" value="{{ $product->sale_price ?? old('sale_price') }}">
+                            <span class="input-group-text">₼</span>
+                        </div>
+                        <div class="form-text small">Əgər endirim yoxdursa boş saxlayın.</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">SKU (Kod)</label>
+                        <label class="form-label">SKU (Məhsul Kodu)</label>
                         <input type="text" class="form-control" name="sku" value="{{ $product->sku ?? old('sku') }}">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Stok Miqdarı</label>
                         <input type="number" class="form-control" name="stock_quantity" value="{{ $product->stock_quantity ?? 0 }}">
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEO PANELİ (YENİ) -->
+        <div class="card shadow mb-4 border-left-warning">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 font-weight-bold text-warning"><i class="fas fa-search me-1"></i> SEO Tənzimləmələri</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Google axtarış nəticələri üçün başlıq və açıqlamaları buradan tənzimləyin.</p>
+
+                <!-- Dil Tabları (SEO üçün) -->
+                <ul class="nav nav-pills mb-3" role="tablist">
+                    @foreach($languages as $index => $lang)
+                        <li class="nav-item">
+                            <button class="nav-link {{ $index == 0 ? 'active' : '' }}"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#seo-content-{{ $lang->code }}"
+                                    type="button">
+                                {{ $lang->name }}
+                            </button>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <div class="tab-content">
+                    @foreach($languages as $index => $lang)
+                        <div class="tab-pane fade {{ $index == 0 ? 'show active' : '' }}" id="seo-content-{{ $lang->code }}">
+                            <div class="mb-3">
+                                <label class="form-label">Meta Title ({{ $lang->code }})</label>
+                                <input type="text" class="form-control" name="seo_title[{{ $lang->code }}]"
+                                       placeholder="{{ $product ? $product->getTranslation('name', $lang->code, false) : '' }}"
+                                       value="{{ $product ? $product->getTranslation('seo_title', $lang->code, false) : '' }}">
+                                <div class="form-text small">Google-da görünəcək başlıq.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Meta Description ({{ $lang->code }})</label>
+                                <textarea class="form-control" name="seo_description[{{ $lang->code }}]" rows="3">{{ $product ? $product->getTranslation('seo_description', $lang->code, false) : '' }}</textarea>
+                                <div class="form-text small">Google-da başlıq altında görünən qısa mətn.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Meta Keywords ({{ $lang->code }})</label>
+                                <input type="text" class="form-control" name="seo_keywords[{{ $lang->code }}]"
+                                       placeholder="dərman, aptek, ağrıkəsici"
+                                       value="{{ $product ? $product->getTranslation('seo_keywords', $lang->code, false) : '' }}">
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -85,7 +144,7 @@
                 </div>
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" name="is_featured" value="1" {{ ($product->is_featured ?? false) ? 'checked' : '' }}>
-                    <label class="form-check-label">Vitrin Məhsulu</label>
+                    <label class="form-check-label">Vitrin Məhsulu (Seçilmiş)</label>
                 </div>
                 <div class="d-grid">
                     <button type="submit" class="btn btn-success">
@@ -133,7 +192,7 @@
         <!-- Əsas Şəkil -->
         <div class="card shadow mb-4">
             <div class="card-header py-3 bg-white">
-                <h6 class="m-0 font-weight-bold text-primary">Əsas Şəkil</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Əsas Şəkil (Qapaq)</h6>
             </div>
             <div class="card-body text-center">
                 <div class="mb-3">
@@ -147,6 +206,7 @@
                     @endif
                 </div>
                 <input type="file" class="form-control form-control-sm" name="image" onchange="previewFile(this, 'preview-image', 'placeholder-image')">
+                <div class="form-text small mt-2">Bu şəkil həm də SEO şəkli olacaq.</div>
             </div>
         </div>
     </div>
