@@ -10,6 +10,7 @@ class Doctor extends Model
     use HasTranslations;
 
     protected $fillable = [
+        'user_id',
         'clinic_id',
         'specialty_id',
         'first_name',
@@ -26,7 +27,8 @@ class Doctor extends Model
         'longitude',
         'status',
         'rating_avg',
-        'review_count'
+        'review_count',
+        'accepts_reservations'
     ];
 
     public $translatable = ['first_name', 'last_name', 'bio'];
@@ -34,10 +36,16 @@ class Doctor extends Model
     protected $casts = [
         'work_hours' => 'array',
         'social_links' => 'array',
-        'status' => 'boolean'
+        'status' => 'boolean',
+        'accepts_reservations' => 'boolean'
     ];
 
-    // Əlaqələr
+    // İstifadəçi (Hesab) ilə əlaqə
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
@@ -48,7 +56,6 @@ class Doctor extends Model
         return $this->belongsTo(Specialty::class);
     }
 
-    // Tam adı qaytaran köməkçi (Cari dildə)
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;

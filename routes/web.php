@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\ClinicController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\DoctorAccountController;
+use App\Http\Controllers\Admin\DoctorRequestController; // Yeni Controller
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +30,7 @@ Route::group(
             return view('welcome');
         });
 
-        // --- ADMIN PANEL ROUTE-LARI (Prefix: admin, Name Prefix: admin.) ---
+        // --- ADMIN PANEL ROUTE-LARI ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
             // Başlanğıc
@@ -68,7 +69,7 @@ Route::group(
             // Həkimlər (Resource Controller)
             Route::resource('doctors', DoctorController::class);
 
-            // Həkim Hesabları (Controller)
+            // Həkim Hesabları
             Route::get('doctor-accounts', [DoctorAccountController::class, 'index'])->name('doctor_accounts.index');
             Route::post('doctor-accounts', [DoctorAccountController::class, 'store'])->name('doctor_accounts.store');
             Route::delete('doctor-accounts/{id}', [DoctorAccountController::class, 'destroy'])->name('doctor_accounts.destroy');
@@ -80,12 +81,16 @@ Route::group(
             Route::resource('specialties', SpecialtyController::class);
 
             Route::get('reservations', function() { return 'Rezervasiyalar'; })->name('reservations.index');
-            Route::get('doctor-requests', function() { return 'Həkim İstəkləri'; })->name('doctor_requests.index');
+
+            // YENİ: Həkim İstəkləri (Doctor Requests)
+            Route::get('doctor-requests', [DoctorRequestController::class, 'index'])->name('doctor_requests.index');
+            Route::put('doctor-requests/{id}/status', [DoctorRequestController::class, 'updateStatus'])->name('doctor_requests.status');
+            Route::delete('doctor-requests/{id}', [DoctorRequestController::class, 'destroy'])->name('doctor_requests.destroy');
 
 
             // --- E-Ticarət (Aptek) ---
 
-            // Xidmətlər (Tibb bölməsindən bura köçürüldü)
+            // Xidmətlər (Satış)
             Route::get('services', function() { return 'Xidmətlər (Satış)'; })->name('services.index');
 
             Route::get('products', function() { return 'Məhsullar'; })->name('products.index');
@@ -107,7 +112,6 @@ Route::group(
             Route::get('payments', function() { return 'Ödəniş Tarixçəsi'; })->name('payments.index');
 
             Route::prefix('settings')->name('settings.')->group(function() {
-                // Sayt Tənzimləmələri
                 Route::get('site', [SettingController::class, 'site'])->name('site');
                 Route::put('site', [SettingController::class, 'update'])->name('update');
 
@@ -134,8 +138,7 @@ Route::group(
 
         });
 
-        // --- Dillər & Tərcümə (Prefix: admin, Name Prefix: YOXDUR) ---
-        // Resource Controller default adlandırma (languages.index) istifadə edir
+        // --- Dillər & Tərcümə ---
         Route::group(['prefix' => 'admin'], function() {
              Route::resource('languages', LanguageController::class);
 
