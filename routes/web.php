@@ -112,11 +112,11 @@ Route::group(
             // Məhsullar (Resource)
             Route::resource('products', ProductController::class);
 
-            // Məhsul Kateqoriyaları (Resource)
-            Route::resource('product-categories', ProductCategoryController::class);
+            // Məhsul Kateqoriyaları (Resource) - URL-də "_" istifadə edirik ki, route adı view ilə eyni olsun
+            Route::resource('product_categories', ProductCategoryController::class);
 
-            // Məhsul Teqləri (Resource)
-            Route::resource('product-tags', ProductTagController::class);
+            // Məhsul Teqləri (Resource) - URL-də "_" istifadə edirik ki, route adı view ilə eyni olsun
+            Route::resource('product_tags', ProductTagController::class);
 
             Route::get('orders', function() { return 'Sifarişlər'; })->name('orders.index');
             Route::get('coupons', function() { return 'Kuponlar'; })->name('coupons.index');
