@@ -10,7 +10,8 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\ClinicController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\DoctorAccountController;
-use App\Http\Controllers\Admin\DoctorRequestController; // Yeni Controller
+use App\Http\Controllers\Admin\DoctorRequestController;
+use App\Http\Controllers\Admin\ReservationController; // Yeni Controller
 
 /*
 |--------------------------------------------------------------------------
@@ -80,9 +81,12 @@ Route::group(
             // İxtisaslar (Specialties) (Resource)
             Route::resource('specialties', SpecialtyController::class);
 
-            Route::get('reservations', function() { return 'Rezervasiyalar'; })->name('reservations.index');
+            // Rezervasiyalar (Controller)
+            Route::get('reservations', [ReservationController::class, 'index'])->name('reservations.index');
+            Route::put('reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.status');
+            Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
-            // YENİ: Həkim İstəkləri (Doctor Requests)
+            // Həkim İstəkləri (Doctor Requests)
             Route::get('doctor-requests', [DoctorRequestController::class, 'index'])->name('doctor_requests.index');
             Route::put('doctor-requests/{id}/status', [DoctorRequestController::class, 'updateStatus'])->name('doctor_requests.status');
             Route::delete('doctor-requests/{id}', [DoctorRequestController::class, 'destroy'])->name('doctor_requests.destroy');
