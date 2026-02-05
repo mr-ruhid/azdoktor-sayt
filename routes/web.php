@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\DoctorRequestController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Admin\PostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +53,9 @@ Route::group(
                 Route::get('/', function() { return 'Paylaşımlar'; })->name('index');
                 Route::get('/create', function() { return 'Yeni Paylaşım'; })->name('create');
             });
+
+            // Paylaşımlar (Resource)
+            Route::resource('posts', PostController::class);
 
             // Kateqoriyalar (Resource)
             Route::resource('categories', CategoryController::class);
