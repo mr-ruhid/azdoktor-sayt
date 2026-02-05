@@ -22,7 +22,8 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\CommentController;
-use App\Http\Controllers\Admin\ContactController; // Yeni Contact Controller
+use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -153,7 +154,10 @@ Route::group(
             Route::delete('contacts/{id}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
             // --- Sistem & Tənzimləmələr ---
-            Route::get('payments', function() { return 'Ödəniş Tarixçəsi'; })->name('payments.index');
+
+            // Ödəniş Tarixçəsi (PaymentController)
+            Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+            Route::delete('payments/{id}', [PaymentController::class, 'destroy'])->name('payments.destroy');
 
             Route::prefix('settings')->name('settings.')->group(function() {
                 Route::get('site', [SettingController::class, 'site'])->name('site');
