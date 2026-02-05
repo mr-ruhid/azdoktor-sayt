@@ -49,7 +49,7 @@ Route::group(
             // Başlanğıc
             Route::get('/', function () { return view('admin.dashboard'); })->name('dashboard');
 
-            // --- Məzmun İdarəetməsi ---
+            // --- Məzmun İdarəetməsi (Hələlik Placeholder) ---
             Route::prefix('pages')->name('pages.')->group(function() {
                 Route::get('/', function() { return 'Səhifələr Siyahısı'; })->name('index');
                 Route::get('/create', function() { return 'Yeni Səhifə'; })->name('create');
@@ -125,6 +125,7 @@ Route::group(
             Route::resource('products', ProductController::class);
 
             // Məhsul Kateqoriyaları (Resource)
+            // URL-də "_" istifadə edirik ki, layout.blade.php-dəki route() funksiyaları ilə uyğun gəlsin
             Route::resource('product_categories', ProductCategoryController::class);
 
             // Məhsul Teqləri (Resource)
@@ -164,7 +165,10 @@ Route::group(
                 Route::put('site', [SettingController::class, 'update'])->name('update');
 
                 Route::get('general', function() { return 'Ümumi Ayarlar'; })->name('general');
-                Route::get('smtp', function() { return 'SMTP Ayarları'; })->name('smtp');
+
+                // SMTP Ayarları
+                Route::get('smtp', [SettingController::class, 'smtp'])->name('smtp');
+                Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
             });
 
             Route::prefix('api')->name('api.')->group(function() {
@@ -186,7 +190,7 @@ Route::group(
 
         });
 
-        // --- Dillər & Tərcümə ---
+        // --- Dillər & Tərcümə (Resource default naming işlədir) ---
         Route::group(['prefix' => 'admin'], function() {
              Route::resource('languages', LanguageController::class);
 

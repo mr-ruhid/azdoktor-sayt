@@ -19,8 +19,17 @@ class GeneralSetting extends Model
         'seo_title',
         'seo_description',
         'seo_keywords',
+        // SMTP Settings (E-poçt ayarları)
+        'mail_mailer',
+        'mail_host',
+        'mail_port',
+        'mail_username',
+        'mail_password',
+        'mail_encryption',
+        'mail_from_address',
+        'mail_from_name',
     ];
 
-    // Bu sahələrin hər dildə qarşılığı olacaq
+    // Tərcümə olunan sahələr (Spatie paketi üçün)
     public $translatable = ['seo_title', 'seo_description', 'seo_keywords'];
 }
