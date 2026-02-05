@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SubscriberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,7 +51,7 @@ Route::group(
             // Başlanğıc
             Route::get('/', function () { return view('admin.dashboard'); })->name('dashboard');
 
-            // --- Məzmun İdarəetməsi (Hələlik Placeholder) ---
+            // --- Məzmun İdarəetməsi ---
             Route::prefix('pages')->name('pages.')->group(function() {
                 Route::get('/', function() { return 'Səhifələr Siyahısı'; })->name('index');
                 Route::get('/create', function() { return 'Yeni Səhifə'; })->name('create');
@@ -125,7 +127,6 @@ Route::group(
             Route::resource('products', ProductController::class);
 
             // Məhsul Kateqoriyaları (Resource)
-            // URL-də "_" istifadə edirik ki, layout.blade.php-dəki route() funksiyaları ilə uyğun gəlsin
             Route::resource('product_categories', ProductCategoryController::class);
 
             // Məhsul Teqləri (Resource)
@@ -141,12 +142,14 @@ Route::group(
             Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
             // --- İstifadəçilər ---
-            Route::get('users', function() { return 'İstifadəçilər'; })->name('users.index');
+            Route::resource('users', UserController::class);
 
             // Rollar və İcazələr (Resource Controller)
             Route::resource('roles', RoleController::class);
 
-            Route::get('subscribers', function() { return 'Abunəçilər'; })->name('subscribers.index');
+            // Abunəçilər
+            Route::get('subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
+            Route::delete('subscribers/{id}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
 
             // Əlaqə Mesajları (ContactController)
             Route::get('contacts', [ContactController::class, 'index'])->name('contacts.index');
@@ -190,7 +193,7 @@ Route::group(
 
         });
 
-        // --- Dillər & Tərcümə (Resource default naming işlədir) ---
+        // --- Dillər & Tərcümə ---
         Route::group(['prefix' => 'admin'], function() {
              Route::resource('languages', LanguageController::class);
 
