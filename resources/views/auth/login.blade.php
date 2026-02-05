@@ -59,7 +59,9 @@
             <div class="mb-3">
                 <div class="d-flex justify-content-between">
                     <label class="form-label small text-muted fw-bold">Şifrə</label>
-                    <a href="{{ route('password.request') }}" class="small text-decoration-none">Unutmusuz?</a>
+                    @if (Route::has('password.request'))
+                        <a href="{{ route('password.request') }}" class="small text-decoration-none">Unutmusuz?</a>
+                    @endif
                 </div>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
@@ -80,9 +82,13 @@
             <button type="submit" class="btn btn-primary w-100">Daxil Ol</button>
         </form>
 
-        <!-- Sosial Girişlər (Əgər aktivdirsə) -->
+        <!-- Sosial Girişlər (Əgər tənzimləmələrdə aktivdirsə) -->
         @php
-            $setting = \App\Models\GeneralSetting::first();
+            try {
+                $setting = \App\Models\GeneralSetting::first();
+            } catch (\Exception $e) {
+                $setting = null;
+            }
         @endphp
 
         @if($setting && $setting->enable_social_login)
