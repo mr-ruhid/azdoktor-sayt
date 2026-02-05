@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class SettingController extends Controller
 {
-    // Tənzimləmələri gətirən köməkçi metod
+    // Tənzimləmələri gətirən və ya yoxdursa yaradan köməkçi metod
     private function getSetting()
     {
         $setting = GeneralSetting::first();
@@ -21,7 +21,7 @@ class SettingController extends Controller
         return $setting;
     }
 
-    // Sayt Tənzimləmələri Səhifəsi (Logo, SEO)
+    // --- Sayt Tənzimləmələri (Logo, SEO) ---
     public function site()
     {
         $setting = $this->getSetting();
@@ -29,7 +29,6 @@ class SettingController extends Controller
         return view('admin.settings.site', compact('setting', 'languages'));
     }
 
-    // Sayt Tənzimləmələrini Yenilə
     public function update(Request $request)
     {
         $setting = $this->getSetting();
@@ -59,8 +58,40 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'Tənzimləmələr uğurla yeniləndi.');
     }
 
-    // --- SMTP (E-poçt) Hissəsi ---
+    // --- Ümumi Ayarlar (Maintenance, Auth, 2FA) ---
+    public function general()
+    {
+        $setting = $this->getSetting();
+        $languages = Language::where('status', true)->get();
+        return view('admin.settings.general', compact('setting', 'languages'));
+    }
 
+    public function generalUpdate(Request $request)
+    {
+        $setting = $this->getSetting();
+
+        // Checkbox-lar göndərilməyəndə false olsun deyə əvvəlcə hamısını yoxlayırıq
+        $data = [
+            'maintenance_mode' => $request->has('maintenance_mode'),
+            'enable_registration' => $request->has('enable_registration'),
+            'enable_email_verification' => $request->has('enable_email_verification'),
+            'enable_social_login' => $request->has('enable_social_login'),
+            'auth_2fa_admin' => $request->has('auth_2fa_admin'),
+            'auth_2fa_user' => $request->has('auth_2fa_user'),
+            'maintenance_text' => $request->input('maintenance_text'),
+        ];
+
+        $setting->update($data);
+
+        // Middleware tərəfindən istifadə olunan cache-i təmizləmək vacibdir
+        try {
+            Artisan::call('optimize:clear');
+        } catch (\Exception $e) {}
+
+        return redirect()->back()->with('success', 'Ümumi ayarlar yeniləndi.');
+    }
+
+    // --- SMTP (E-poçt) Hissəsi ---
     public function smtp()
     {
         $setting = $this->getSetting();
@@ -84,7 +115,7 @@ class SettingController extends Controller
 
         $setting->update($data);
 
-        // Config cache-i təmizləyirik ki, yeni ayarlar dərhal tətbiq olunsun
+        // Config cache-i təmizləyirik ki, yeni e-poçt ayarları dərhal tətbiq olunsun
         try {
             Artisan::call('config:clear');
         } catch (\Exception $e) {}

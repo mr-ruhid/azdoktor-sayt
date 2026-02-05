@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\ApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,11 +60,6 @@ Route::group(
 
             Route::get('menus', function() { return 'Menyular'; })->name('menus.index');
             Route::get('sidebars', function() { return 'Yan Panellər'; })->name('sidebars.index');
-
-            Route::prefix('posts')->name('posts.')->group(function() {
-                Route::get('/', function() { return 'Paylaşımlar'; })->name('index');
-                Route::get('/create', function() { return 'Yeni Paylaşım'; })->name('create');
-            });
 
             // Paylaşımlar (Resource)
             Route::resource('posts', PostController::class);
@@ -167,15 +163,19 @@ Route::group(
                 Route::get('site', [SettingController::class, 'site'])->name('site');
                 Route::put('site', [SettingController::class, 'update'])->name('update');
 
-                Route::get('general', function() { return 'Ümumi Ayarlar'; })->name('general');
+                // Ümumi Ayarlar (General)
+                Route::get('general', [SettingController::class, 'general'])->name('general');
+                Route::put('general', [SettingController::class, 'generalUpdate'])->name('general.update');
 
                 // SMTP Ayarları
                 Route::get('smtp', [SettingController::class, 'smtp'])->name('smtp');
                 Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
             });
 
+            // API İnteqrasiyaları
             Route::prefix('api')->name('api.')->group(function() {
-                Route::get('my', function() { return 'Mənim API-lərim'; })->name('my');
+                Route::get('my', [ApiController::class, 'index'])->name('my');
+                Route::put('my/{id}', [ApiController::class, 'update'])->name('update');
                 Route::get('shared', function() { return 'Paylaşılan API-lər'; })->name('shared');
             });
 
