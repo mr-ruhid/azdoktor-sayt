@@ -6,12 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles; // Bu sətri əlavə etdik
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles; // HasRoles-u bura əlavə etdik
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        // 2FA Sütunları
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     /**
@@ -44,6 +47,33 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_expires_at' => 'datetime',
         ];
+    }
+
+    // --- 2FA Metodları ---
+
+    public function generateTwoFactorCode()
+    {
+        $this->timestamps = false; // updated_at dəyişməsin
+        $this->two_factor_code = rand(100000, 999999);
+        $this->two_factor_expires_at = now()->addMinutes(10);
+        $this->save();
+    }
+
+    public function resetTwoFactorCode()
+    {
+        $this->timestamps = false;
+        $this->two_factor_code = null;
+        $this->two_factor_expires_at = null;
+        $this->save();
+    }
+
+    // --- Əlaqələr ---
+
+    // Əgər istifadəçi həkimdirsə, həkim profili ilə əlaqə
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class);
     }
 }
