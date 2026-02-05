@@ -11,7 +11,9 @@ use App\Http\Controllers\Admin\ClinicController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\DoctorAccountController;
 use App\Http\Controllers\Admin\DoctorRequestController;
-use App\Http\Controllers\Admin\ReservationController; // Yeni Controller
+use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\TagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +33,7 @@ Route::group(
             return view('welcome');
         });
 
-        // --- ADMIN PANEL ROUTE-LARI ---
+        // --- ADMIN PANEL ROUTE-LARI (Prefix: admin, Name Prefix: admin.) ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
             // Başlanğıc
@@ -51,8 +53,11 @@ Route::group(
                 Route::get('/create', function() { return 'Yeni Paylaşım'; })->name('create');
             });
 
-            Route::get('categories', function() { return 'Kateqoriyalar'; })->name('categories.index');
-            Route::get('tags', function() { return 'Teqlər'; })->name('tags.index');
+            // Kateqoriyalar (Resource)
+            Route::resource('categories', CategoryController::class);
+
+            // Teqlər (Resource)
+            Route::resource('tags', TagController::class);
 
             Route::prefix('comments')->name('comments.')->group(function() {
                 Route::get('/doctors', function() { return 'Həkim Şərhləri'; })->name('doctors');
