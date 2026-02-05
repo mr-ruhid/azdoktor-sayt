@@ -18,8 +18,8 @@ return new class extends Migration
             $table->text('message');     // Detallar (Mesaj)
 
             // Statuslar
-            $table->boolean('is_read')->default(false); // Oxunub?
-            $table->boolean('is_replied')->default(false); // Cavab verilib?
+            $table->boolean('is_read')->default(false); // Oxu
+            $table->boolean('is_replied')->default(false); // Cavab
 
             $table->timestamps();
         });

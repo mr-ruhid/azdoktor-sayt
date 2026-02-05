@@ -20,7 +20,9 @@ use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\ProductTagController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\ServiceController;
-use App\Http\Controllers\Admin\OrderController; // Yeni Sifariş Controlleri
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\CommentController;
+use App\Http\Controllers\Admin\ContactController; // Yeni Contact Controller
 
 /*
 |--------------------------------------------------------------------------
@@ -69,10 +71,16 @@ Route::group(
             // Teqlər (Blog üçün)
             Route::resource('tags', TagController::class);
 
+            // Şərhlər (Comments)
             Route::prefix('comments')->name('comments.')->group(function() {
-                Route::get('/doctors', function() { return 'Həkim Şərhləri'; })->name('doctors');
-                Route::get('/blogs', function() { return 'Bloq Şərhləri'; })->name('blogs');
-                Route::get('/products', function() { return 'Məhsul Şərhləri'; })->name('products');
+                Route::get('/doctors', [CommentController::class, 'index'])->name('doctors');
+                Route::get('/blogs', [CommentController::class, 'index'])->name('blogs');
+                Route::get('/products', [CommentController::class, 'index'])->name('products');
+
+                // Ortaq əməliyyatlar
+                Route::post('/reply', [CommentController::class, 'reply'])->name('reply');
+                Route::put('/{id}/status', [CommentController::class, 'updateStatus'])->name('status');
+                Route::delete('/{id}', [CommentController::class, 'destroy'])->name('destroy');
             });
 
             // Media (Resource)
@@ -124,7 +132,7 @@ Route::group(
             // Kuponlar (Resource)
             Route::resource('coupons', CouponController::class);
 
-            // Sifarişlər (OrderController) - YENİ
+            // Sifarişlər (OrderController)
             Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
             Route::put('orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
@@ -137,7 +145,12 @@ Route::group(
             Route::resource('roles', RoleController::class);
 
             Route::get('subscribers', function() { return 'Abunəçilər'; })->name('subscribers.index');
-            Route::get('contacts', function() { return 'Əlaqə Mesajları'; })->name('contacts.index');
+
+            // Əlaqə Mesajları (ContactController)
+            Route::get('contacts', [ContactController::class, 'index'])->name('contacts.index');
+            Route::get('contacts/{id}', [ContactController::class, 'show'])->name('contacts.show');
+            Route::post('contacts/{id}/reply', [ContactController::class, 'reply'])->name('contacts.reply');
+            Route::delete('contacts/{id}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
             // --- Sistem & Tənzimləmələr ---
             Route::get('payments', function() { return 'Ödəniş Tarixçəsi'; })->name('payments.index');
