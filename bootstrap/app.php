@@ -11,22 +11,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Middleware Alias-ları
+        // Middleware Alias-ları (Qısa adlar)
         $middleware->alias([
-            // Localization
+            // Localization (Dil) Middleware-ləri
             'localeSessionRedirect' => \Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect::class,
             'localizationRedirect' => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class,
             'localeViewPath' => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
             'localize' => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes::class,
             'translationRedirect' => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class,
 
-            // 2FA (YENİ)
+            // 2FA (İki Faktorlu Təsdiqləmə)
             'admin.2fa' => \App\Http\Middleware\AdminTwoFactor::class,
         ]);
 
-        // Təmir rejimi middleware-ni qlobal olaraq web qrupuna əlavə edirik
+        // Global Middleware (Hər sorğuda işləyənlər)
+        // Web qrupuna əlavə edirik ki, bütün veb sorğularında yoxlanılsın
         $middleware->web(append: [
-            \App\Http\Middleware\CheckMaintenanceMode::class,
+            \App\Http\Middleware\CheckMaintenanceMode::class, // Təmir rejimi yoxlanışı
+            \App\Http\Middleware\CheckBlockedIp::class,       // IP Bloklama yoxlanışı
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

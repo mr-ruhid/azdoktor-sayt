@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SubscriberController;
 use App\Http\Controllers\Admin\ApiController;
 use App\Http\Controllers\Admin\TwoFactorController;
+use App\Http\Controllers\Admin\LogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,15 +50,12 @@ Route::group(
         });
 
         // Standart Laravel Auth Routeları (Login, Logout, Password Reset)
-        // Qeydiyyatı (Register) admin paneldən idarə etdiyimiz üçün burada false edirik,
-        // amma ehtiyac olsa 'register' => true edə bilərsiniz.
         Auth::routes(['register' => false, 'verify' => true]);
 
-        // --- ADMIN PANEL ROUTE-LARI ---
-        // 'auth' middleware: Giriş etməyənləri Login səhifəsinə atır
+        // --- ADMIN PANEL ROUTE-LARI (Prefix: admin, Name Prefix: admin.) ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
 
-            // 1. 2FA Səhifələri (Middleware-dən KƏNAR olmalıdır ki, sonsuz dövrə yaranmasın)
+            // 1. 2FA Səhifələri (Middleware-dən KƏNAR olmalıdır)
             Route::get('2fa', [TwoFactorController::class, 'index'])->name('2fa.index');
             Route::post('2fa', [TwoFactorController::class, 'store'])->name('2fa.store');
             Route::post('2fa/resend', [TwoFactorController::class, 'resend'])->name('2fa.resend');
@@ -179,9 +177,11 @@ Route::group(
                     Route::get('site', [SettingController::class, 'site'])->name('site');
                     Route::put('site', [SettingController::class, 'update'])->name('update');
 
+                    // Ümumi Ayarlar (General)
                     Route::get('general', [SettingController::class, 'general'])->name('general');
                     Route::put('general', [SettingController::class, 'generalUpdate'])->name('general.update');
 
+                    // SMTP Ayarları
                     Route::get('smtp', [SettingController::class, 'smtp'])->name('smtp');
                     Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
                 });
@@ -198,14 +198,17 @@ Route::group(
                     Route::get('maintenance', function() { return 'Sistem Qulluğu'; })->name('maintenance');
                 });
 
-                Route::get('logs', function() { return 'Giriş Logları'; })->name('logs.index');
+                // Giriş Logları və Bloklama
+                Route::get('logs', [LogController::class, 'index'])->name('logs.index');
+                Route::post('logs/block', [LogController::class, 'blockIp'])->name('logs.block');
+                Route::delete('logs/unblock/{id}', [LogController::class, 'unblockIp'])->name('logs.unblock');
 
                 Route::prefix('system')->name('system.')->group(function() {
                     Route::get('update', function() { return 'Yeniləmə Mərkəzi'; })->name('update');
                     Route::get('backups', function() { return 'Ehtiyat Nüsxələr'; })->name('backups');
                 });
 
-            }); // End of 2FA Group
+            }); // End of 2FA Middleware Group
 
         }); // End of Admin Group
 
@@ -219,11 +222,3 @@ Route::group(
 
     }
 );
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

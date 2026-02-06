@@ -5,26 +5,22 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Login;
 use App\Models\Language;
 use App\Models\GeneralSetting;
+use App\Models\LoginLog;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         // 1. Dinamik Dillər Konfiqurasiyası
-        // Bazadakı aktiv dilləri oxuyub LaravelLocalization paketinə ötürürük
         try {
             if (Schema::hasTable('languages')) {
                 $languages = Language::where('status', true)->get();
@@ -38,21 +34,17 @@ class AppServiceProvider extends ServiceProvider
                             'regional' => $lang->code . '_' . strtoupper($lang->code),
                         ];
                     }
-                    // Config-i runtime-da dəyişirik
                     config(['laravellocalization.supportedLocales' => $supportedLocales]);
                 }
             }
-        } catch (\Exception $e) {
-            // Migration zamanı xəta verməməsi üçün boş buraxırıq
-        }
+        } catch (\Exception $e) {}
 
         // 2. Dinamik SMTP Konfiqurasiyası
-        // Bazadakı SMTP ayarlarını oxuyub Laravel Mail sisteminə ötürürük
         try {
             if (Schema::hasTable('general_settings')) {
                 $setting = GeneralSetting::first();
 
-                // Əgər bazada SMTP hostu varsa, config-i yeniləyirik
+                // Əgər bazada SMTP hostu varsa
                 if ($setting && $setting->mail_host) {
                     $config = [
                         'transport' => $setting->mail_mailer ?? 'smtp',
@@ -65,8 +57,11 @@ class AppServiceProvider extends ServiceProvider
                         'local_domain' => env('MAIL_EHLO_DOMAIN'),
                     ];
 
-                    // Laravel mail konfiqurasiyasını override edirik
+                    // SMTP Ayarlarını tətbiq edirik
                     Config::set('mail.mailers.smtp', $config);
+
+                    // VACİB: Varsayılan mail göndəricisini 'smtp' edirik (log əvəzinə)
+                    Config::set('mail.default', 'smtp');
 
                     if ($setting->mail_from_address) {
                         Config::set('mail.from.address', $setting->mail_from_address);
@@ -76,8 +71,20 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
             }
-        } catch (\Exception $e) {
-            // Migration zamanı xəta verməməsi üçün boş buraxırıq
-        }
+        } catch (\Exception $e) {}
+
+        // 3. Giriş Logları
+        Event::listen(Login::class, function ($event) {
+            try {
+                if (Schema::hasTable('login_logs')) {
+                    LoginLog::create([
+                        'user_id' => $event->user->id,
+                        'ip_address' => request()->ip(),
+                        'user_agent' => request()->userAgent(),
+                        'login_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {}
+        });
     }
 }
