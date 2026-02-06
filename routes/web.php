@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\SubscriberController;
 use App\Http\Controllers\Admin\ApiController;
 use App\Http\Controllers\Admin\TwoFactorController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\SystemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,13 +50,13 @@ Route::group(
             return view('welcome');
         });
 
-        // Standart Laravel Auth Routeları (Login, Logout, Password Reset)
+        // Standart Laravel Auth Routeları
         Auth::routes(['register' => false, 'verify' => true]);
 
-        // --- ADMIN PANEL ROUTE-LARI (Prefix: admin, Name Prefix: admin.) ---
+        // --- ADMIN PANEL ROUTE-LARI ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
 
-            // 1. 2FA Səhifələri (Middleware-dən KƏNAR olmalıdır)
+            // 1. 2FA Səhifələri (Middleware-dən KƏNAR)
             Route::get('2fa', [TwoFactorController::class, 'index'])->name('2fa.index');
             Route::post('2fa', [TwoFactorController::class, 'store'])->name('2fa.store');
             Route::post('2fa/resend', [TwoFactorController::class, 'resend'])->name('2fa.resend');
@@ -75,16 +76,12 @@ Route::group(
                 Route::get('menus', function() { return 'Menyular'; })->name('menus.index');
                 Route::get('sidebars', function() { return 'Yan Panellər'; })->name('sidebars.index');
 
-                // Paylaşımlar (Resource)
+                // Paylaşımlar
                 Route::resource('posts', PostController::class);
-
-                // Kateqoriyalar (Blog üçün)
                 Route::resource('categories', CategoryController::class);
-
-                // Teqlər (Blog üçün)
                 Route::resource('tags', TagController::class);
 
-                // Şərhlər (Comments)
+                // Şərhlər
                 Route::prefix('comments')->name('comments.')->group(function() {
                     Route::get('/doctors', [CommentController::class, 'index'])->name('doctors');
                     Route::get('/blogs', [CommentController::class, 'index'])->name('blogs');
@@ -96,56 +93,31 @@ Route::group(
                     Route::delete('/{id}', [CommentController::class, 'destroy'])->name('destroy');
                 });
 
-                // Media (Resource)
+                // Media
                 Route::resource('media', MediaController::class)->only(['index', 'store', 'destroy']);
 
                 Route::get('plugins', function() { return 'Plaqinlər'; })->name('plugins.index');
 
                 // --- Tibb Bölməsi ---
-
-                // Həkimlər (Resource Controller)
                 Route::resource('doctors', DoctorController::class);
-
-                // Həkim Hesabları
                 Route::get('doctor-accounts', [DoctorAccountController::class, 'index'])->name('doctor_accounts.index');
                 Route::post('doctor-accounts', [DoctorAccountController::class, 'store'])->name('doctor_accounts.store');
                 Route::delete('doctor-accounts/{id}', [DoctorAccountController::class, 'destroy'])->name('doctor_accounts.destroy');
-
-                // Klinikalar (Resource)
                 Route::resource('clinics', ClinicController::class);
-
-                // İxtisaslar (Specialties) (Resource)
                 Route::resource('specialties', SpecialtyController::class);
-
-                // Rezervasiyalar (Controller)
                 Route::get('reservations', [ReservationController::class, 'index'])->name('reservations.index');
                 Route::put('reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.status');
                 Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
-
-                // Həkim İstəkləri (Doctor Requests)
                 Route::get('doctor-requests', [DoctorRequestController::class, 'index'])->name('doctor_requests.index');
                 Route::put('doctor-requests/{id}/status', [DoctorRequestController::class, 'updateStatus'])->name('doctor_requests.status');
                 Route::delete('doctor-requests/{id}', [DoctorRequestController::class, 'destroy'])->name('doctor_requests.destroy');
 
-
-                // --- E-Ticarət (Aptek) ---
-
-                // Xidmətlər (Resource)
+                // --- E-Ticarət ---
                 Route::resource('services', ServiceController::class);
-
-                // Məhsullar (Resource)
                 Route::resource('products', ProductController::class);
-
-                // Məhsul Kateqoriyaları (Resource)
                 Route::resource('product_categories', ProductCategoryController::class);
-
-                // Məhsul Teqləri (Resource)
                 Route::resource('product_tags', ProductTagController::class);
-
-                // Kuponlar (Resource)
                 Route::resource('coupons', CouponController::class);
-
-                // Sifarişlər (OrderController)
                 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
                 Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
                 Route::put('orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
@@ -153,23 +125,15 @@ Route::group(
 
                 // --- İstifadəçilər ---
                 Route::resource('users', UserController::class);
-
-                // Rollar və İcazələr (Resource Controller)
                 Route::resource('roles', RoleController::class);
-
-                // Abunəçilər
                 Route::get('subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
                 Route::delete('subscribers/{id}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
-
-                // Əlaqə Mesajları (ContactController)
                 Route::get('contacts', [ContactController::class, 'index'])->name('contacts.index');
                 Route::get('contacts/{id}', [ContactController::class, 'show'])->name('contacts.show');
                 Route::post('contacts/{id}/reply', [ContactController::class, 'reply'])->name('contacts.reply');
                 Route::delete('contacts/{id}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
-                // --- Sistem & Tənzimləmələr ---
-
-                // Ödəniş Tarixçəsi (PaymentController)
+                // --- Sistem ---
                 Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
                 Route::delete('payments/{id}', [PaymentController::class, 'destroy'])->name('payments.destroy');
 
@@ -177,16 +141,13 @@ Route::group(
                     Route::get('site', [SettingController::class, 'site'])->name('site');
                     Route::put('site', [SettingController::class, 'update'])->name('update');
 
-                    // Ümumi Ayarlar (General)
                     Route::get('general', [SettingController::class, 'general'])->name('general');
                     Route::put('general', [SettingController::class, 'generalUpdate'])->name('general.update');
 
-                    // SMTP Ayarları
                     Route::get('smtp', [SettingController::class, 'smtp'])->name('smtp');
                     Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
                 });
 
-                // API İnteqrasiyaları
                 Route::prefix('api')->name('api.')->group(function() {
                     Route::get('my', [ApiController::class, 'index'])->name('my');
                     Route::put('my/{id}', [ApiController::class, 'update'])->name('update');
@@ -198,14 +159,22 @@ Route::group(
                     Route::get('maintenance', function() { return 'Sistem Qulluğu'; })->name('maintenance');
                 });
 
-                // Giriş Logları və Bloklama
                 Route::get('logs', [LogController::class, 'index'])->name('logs.index');
                 Route::post('logs/block', [LogController::class, 'blockIp'])->name('logs.block');
                 Route::delete('logs/unblock/{id}', [LogController::class, 'unblockIp'])->name('logs.unblock');
 
+                // Update & Backup (SystemController)
                 Route::prefix('system')->name('system.')->group(function() {
-                    Route::get('update', function() { return 'Yeniləmə Mərkəzi'; })->name('update');
-                    Route::get('backups', function() { return 'Ehtiyat Nüsxələr'; })->name('backups');
+                    // Update
+                    Route::get('update', [SystemController::class, 'updateIndex'])->name('update');
+                    Route::post('update', [SystemController::class, 'updateStore'])->name('update.store');
+
+                    // Backup
+                    Route::get('backups', [SystemController::class, 'backupsIndex'])->name('backups');
+                    Route::post('backups', [SystemController::class, 'backupStore'])->name('backups.store');
+                    Route::get('backups/download/{filename}', [SystemController::class, 'backupDownload'])->name('backups.download');
+                    Route::delete('backups/{filename}', [SystemController::class, 'backupDestroy'])->name('backups.destroy');
+                    Route::post('backups/restore/{filename}', [SystemController::class, 'backupRestore'])->name('backups.restore');
                 });
 
             }); // End of 2FA Middleware Group
@@ -215,7 +184,6 @@ Route::group(
         // --- Dillər & Tərcümə ---
         Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function() {
              Route::resource('languages', LanguageController::class);
-
              Route::get('languages/{id}/translate', [LanguageController::class, 'translate'])->name('languages.translate');
              Route::post('languages/{id}/translate', [LanguageController::class, 'updateTranslate'])->name('languages.updateTranslate');
         });
