@@ -148,10 +148,11 @@ Route::group(
                     Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
                 });
 
+                // API İnteqrasiyaları
                 Route::prefix('api')->name('api.')->group(function() {
                     Route::get('my', [ApiController::class, 'index'])->name('my');
                     Route::put('my/{id}', [ApiController::class, 'update'])->name('update');
-                    Route::get('shared', function() { return 'Paylaşılan API-lər'; })->name('shared');
+                    Route::get('shared', [ApiController::class, 'shared'])->name('shared');
                 });
 
                 Route::prefix('tools')->name('tools.')->group(function() {
