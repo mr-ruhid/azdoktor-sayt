@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\ApiController;
 use App\Http\Controllers\Admin\TwoFactorController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SystemController;
+use App\Http\Controllers\Admin\ToolController;
 
 /*
 |--------------------------------------------------------------------------
@@ -155,11 +156,15 @@ Route::group(
                     Route::get('shared', [ApiController::class, 'shared'])->name('shared');
                 });
 
+                // Sistem Alətləri (Keş və Baxım)
                 Route::prefix('tools')->name('tools.')->group(function() {
-                    Route::get('cache', function() { return 'Cache Təmizləmə'; })->name('cache');
-                    Route::get('maintenance', function() { return 'Sistem Qulluğu'; })->name('maintenance');
+                    Route::get('cache', [ToolController::class, 'cacheIndex'])->name('cache');
+                    Route::get('cache/clear/{type}', [ToolController::class, 'cacheClear'])->name('cache.clear');
+                    Route::get('maintenance', [ToolController::class, 'maintenance'])->name('maintenance');
+                    Route::post('maintenance/{action}', [ToolController::class, 'maintenanceAction'])->name('maintenance.action');
                 });
 
+                // Loglar
                 Route::get('logs', [LogController::class, 'index'])->name('logs.index');
                 Route::post('logs/block', [LogController::class, 'blockIp'])->name('logs.block');
                 Route::delete('logs/unblock/{id}', [LogController::class, 'unblockIp'])->name('logs.unblock');
