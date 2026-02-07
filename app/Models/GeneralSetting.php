@@ -18,6 +18,13 @@ class GeneralSetting extends Model
         'logo_dark',
         'favicon',
 
+        // Əlaqə Məlumatları (YENİ)
+        'phone',
+        'email',
+        'address',      // Çoxdilli
+        'map_iframe',   // Google Map Embed kodu
+        'social_links', // JSON (Facebook, Instagram, Whatsapp və s.)
+
         // SEO Ayarları
         'seo_title',
         'seo_description',
@@ -45,6 +52,8 @@ class GeneralSetting extends Model
 
     // Tərcümə olunan sahələr (Spatie paketi üçün)
     public $translatable = [
+        'site_name',      // Admin paneldə çoxdilli olduğu üçün bura əlavə etdik
+        'address',        // Ünvan
         'seo_title',
         'seo_description',
         'seo_keywords',
@@ -59,5 +68,6 @@ class GeneralSetting extends Model
         'enable_social_login' => 'boolean',
         'auth_2fa_admin' => 'boolean',
         'auth_2fa_user' => 'boolean',
+        'social_links' => 'array', // YENİ: JSON array
     ];
 }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0 text-gray-800">Ümumi Ayarlar</h3>
+        <h3 class="mb-0 text-gray-800">Ümumi və Əlaqə Ayarları</h3>
     </div>
 
     @if(session('success'))
@@ -98,35 +98,108 @@
                 </div>
             </div>
 
-            <!-- Təhlükəsizlik (2FA) -->
+            <!-- Əlaqə Məlumatları (YENİ) -->
             <div class="col-md-12 mb-4">
-                <div class="card shadow border-left-danger">
+                <div class="card shadow border-left-info">
+                    <div class="card-header py-3 bg-white">
+                        <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-address-card me-2"></i> Əlaqə Məlumatları</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Telefon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="text" name="phone" class="form-control" value="{{ $setting->phone }}" placeholder="+994 50 000 00 00">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">E-poçt</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" name="email" class="form-control" value="{{ $setting->email }}" placeholder="info@example.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ünvan (Tərcüməli)</label>
+                            <!-- Ünvan Tabları -->
+                            <ul class="nav nav-tabs mb-2" role="tablist">
+                                @foreach($languages as $index => $lang)
+                                    <li class="nav-item">
+                                        <button class="nav-link {{ $index == 0 ? 'active' : '' }} py-1 px-3 small"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#addr-{{ $lang->code }}"
+                                                type="button">
+                                            {{ $lang->code }}
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <div class="tab-content">
+                                @foreach($languages as $index => $lang)
+                                    <div class="tab-pane fade {{ $index == 0 ? 'show active' : '' }}" id="addr-{{ $lang->code }}">
+                                        <input type="text" class="form-control" name="address[{{ $lang->code }}]"
+                                               value="{{ $setting->getTranslation('address', $lang->code, false) }}" placeholder="Ünvanı daxil edin...">
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Xəritə (Google Maps Iframe)</label>
+                            <textarea name="map_iframe" class="form-control" rows="3" placeholder='<iframe src="..."></iframe>'>{{ $setting->map_iframe }}</textarea>
+                            <small class="text-muted">Google Maps-dən "Share -> Embed a map" seçib kodu bura yapışdırın.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sosial Media (YENİ) -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow border-left-primary">
+                    <div class="card-header py-3 bg-white">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-share-alt me-2"></i> Sosial Media</h6>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $socials = ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'twitter' => 'Twitter (X)', 'whatsapp' => 'Whatsapp', 'youtube' => 'Youtube'];
+                        @endphp
+                        @foreach($socials as $key => $label)
+                            <div class="input-group mb-2">
+                                <span class="input-group-text" style="width: 110px;">{{ $label }}</span>
+                                <input type="text" name="social_{{ $key }}" class="form-control" value="{{ $setting->social_links[$key] ?? '' }}" placeholder="URL">
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Təhlükəsizlik (2FA) -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow border-left-danger h-100">
                     <div class="card-header py-3 bg-white">
                         <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-shield-alt me-2"></i> İki Faktorlu Təsdiqləmə (2FA)</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 border-end">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div>
-                                        <strong class="d-block text-danger">Adminlər üçün 2FA</strong>
-                                        <small class="text-muted">Admin panelə girişdə email/sms kodu tələb et</small>
-                                    </div>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="auth_2fa_admin" value="1" {{ $setting->auth_2fa_admin ? 'checked' : '' }}>
-                                    </div>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong class="d-block text-danger">Adminlər üçün 2FA</strong>
+                                <small class="text-muted">Admin panelə girişdə email/sms kodu tələb et</small>
                             </div>
-                            <div class="col-md-6">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div>
-                                        <strong class="d-block text-primary">İstifadəçilər üçün 2FA</strong>
-                                        <small class="text-muted">Adi istifadəçilər (Həkim/Pasiyent) üçün girişdə kod tələb et</small>
-                                    </div>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="auth_2fa_user" value="1" {{ $setting->auth_2fa_user ? 'checked' : '' }}>
-                                    </div>
-                                </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="auth_2fa_admin" value="1" {{ $setting->auth_2fa_admin ? 'checked' : '' }}>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block text-primary">İstifadəçilər üçün 2FA</strong>
+                                <small class="text-muted">Adi istifadəçilər (Həkim/Pasiyent) üçün girişdə kod tələb et</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="auth_2fa_user" value="1" {{ $setting->auth_2fa_user ? 'checked' : '' }}>
                             </div>
                         </div>
                     </div>

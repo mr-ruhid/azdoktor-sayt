@@ -17,77 +17,92 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
 
-        /* --- PC SIDEBAR DİZAYNI (Dəyişmədi) --- */
+        /* --- PC SIDEBAR DİZAYNI --- */
         @media (min-width: 992px) {
             .pc-sidebar {
                 width: {{ $pc_sidebar->settings['width'] ?? '280px' }};
                 height: 100vh;
-                position: fixed; top: 0; left: 0;
+                position: fixed;
+                top: 0;
+                left: 0;
                 overflow-y: auto;
                 background-color: {{ $pc_sidebar->settings['background_color'] ?? '#ffffff' }};
                 color: {{ $pc_sidebar->settings['text_color'] ?? '#333333' }};
                 border-right: 1px solid rgba(0,0,0,0.05);
                 z-index: 1000;
                 padding: 1.5rem;
-                display: flex; flex-direction: column;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.03);
             }
+
+            /* Logo Hissəsi */
+            .sidebar-logo {
+                margin-bottom: 2rem;
+                display: block;
+                text-align: center;
+            }
+            .sidebar-logo img {
+                max-height: 50px;
+                width: auto;
+            }
+
+            /* Main Content Wrapper */
             .main-content-wrapper {
                 margin-left: {{ $pc_sidebar->settings['width'] ?? '280px' }};
                 width: calc(100% - {{ $pc_sidebar->settings['width'] ?? '280px' }});
                 min-height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
-            /* PC-də mobil elementləri gizlət */
-            .mobile-bottom-nav, .mobile-lang-sticky { display: none; }
+
+            /* Content Body - Footer-i aşağı itələmək üçün */
+            .page-content {
+                flex: 1;
+            }
+
+            .mobile-header, .mobile-bottom-nav { display: none; }
         }
 
         /* --- MOBİL DİZAYN --- */
         @media (max-width: 991.98px) {
             .pc-sidebar { display: none; }
-            .main-content-wrapper { width: 100%; margin-left: 0; padding-bottom: 90px; /* Navbar üçün yer */ }
+            .main-content-wrapper { width: 100%; margin-left: 0; padding-bottom: 80px; display: flex; flex-direction: column; min-height: 100vh; }
+            .page-content { flex: 1; margin-top: 60px; /* Header hündürlüyü */ }
 
-            /* 1. Yapışqan Dil Düyməsi */
-            .mobile-lang-sticky {
+            /* Mobil Header (Sticky Top) */
+            .mobile-header {
                 position: fixed;
-                top: 15px;
-                right: 15px;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 60px;
+                background: #fff;
                 z-index: 1040;
-            }
-            .lang-btn {
-                background: rgba(255, 255, 255, 0.9);
-                backdrop-filter: blur(5px);
-                border: 1px solid #ddd;
-                border-radius: 20px;
-                padding: 5px 15px;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                color: #333;
-                text-decoration: none;
                 display: flex;
                 align-items: center;
-                gap: 5px;
+                justify-content: space-between;
+                padding: 0 15px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             }
 
-            /* 2. Aşağı Naviqasiya Paneli (Bottom Bar) */
+            /* Mobil Bottom Nav (Sticky Bottom) */
             .mobile-bottom-nav {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                background: #fff;
                 height: 70px;
-                display: flex;
-                justify-content: space-between; /* Elementləri bərabər payla */
-                align-items: center;
-                padding: 0;
-                box-shadow: 0 -2px 20px rgba(0,0,0,0.05);
+                background: #fff;
                 z-index: 1050;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
                 border-top-left-radius: 20px;
                 border-top-right-radius: 20px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
             }
-
             .nav-item-mobile {
-                flex: 1; /* Bütün elementlər eyni genişlikdə olsun */
                 text-align: center;
                 color: #999;
                 font-size: 11px;
@@ -95,52 +110,79 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                height: 100%;
-                padding-top: 5px;
             }
-            .nav-item-mobile i { font-size: 20px; margin-bottom: 4px; }
+            .nav-item-mobile i { font-size: 20px; margin-bottom: 3px; }
             .nav-item-mobile.active { color: #0d6efd; font-weight: 600; }
 
-            /* 3. Mərkəzi Axtarış Düyməsi (Floating) */
-            .search-fab-container {
-                position: relative;
-                top: -25px; /* Paneldən yuxarı çıxarır */
-                width: 70px; /* Sabit ölçü */
-                height: 70px;
-                flex-shrink: 0;
-                display: flex;
-                justify-content: center;
-            }
+            /* Axtarış Düyməsi (Floating) */
             .search-fab {
-                width: 60px;
-                height: 60px;
-                background: #0d6efd; /* Ana rəng */
+                width: 55px; height: 55px;
+                background: #0d6efd;
                 border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #fff;
-                font-size: 24px;
-                box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
-                border: 5px solid #f8f9fa; /* Səhifənin fon rəngi ilə eyni çərçivə */
-                cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                color: #fff; font-size: 22px;
+                box-shadow: 0 4px 10px rgba(13, 110, 253, 0.4);
+                margin-top: -30px; /* Paneldən yuxarı qaldırır */
+                border: 4px solid #f8f9fa;
             }
-
-            /* Boşluqları doldurmaq üçün placeholder (əgər menyu azdırsa) */
-            .nav-placeholder { flex: 1; }
         }
+
+        /* Menyu Elementləri (PC) */
+        .nav-link-custom {
+            color: inherit;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: rgba(0,0,0,0.05);
+            color: #0d6efd;
+        }
+        .nav-link-custom i { width: 25px; text-align: center; margin-right: 10px; }
+
+        /* Dil Dəyişdirici Düyməsi */
+        .lang-btn {
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 13px;
+            color: #333;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            background: #fff;
+        }
+        .lang-btn:hover { background: #f1f1f1; }
     </style>
 </head>
 <body>
 
-    {{-- === MOBİL ELEMENTLƏR === --}}
+    {{-- === 1. MOBİL HEADER (Logo + Dil) === --}}
+    <div class="mobile-header d-lg-none">
+        {{-- Logo --}}
+        <a href="{{ route('home') }}" class="d-flex align-items-center text-decoration-none">
+            @php
+                // Logo prioriteti: Mobile Navbar Logo -> PC Sidebar Logo -> General Settings Logo
+                $mobileLogo = $mobile_navbar->logo ? asset($mobile_navbar->logo) : ($pc_sidebar->logo ? asset($pc_sidebar->logo) : ($settings->logo ? asset($settings->logo) : null));
+            @endphp
 
-    {{-- 1. Yapışqan Dil Düyməsi (Header əvəzinə) --}}
-    <div class="mobile-lang-sticky d-lg-none">
+            @if($mobileLogo)
+                <img src="{{ $mobileLogo }}" height="35" alt="Logo">
+            @else
+                <span class="fw-bold text-dark fs-5">{{ $settings->site_name ?? 'AzDoktor' }}</span>
+            @endif
+        </a>
+
+        {{-- Dil Dəyişdirici --}}
         <div class="dropdown">
             <a href="#" class="lang-btn dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fas fa-globe"></i> {{ strtoupper(app()->getLocale()) }}
+                <img src="{{ asset('vendor/blade-flags/country-' . (app()->getLocale() == 'en' ? 'gb' : app()->getLocale()) . '.svg') }}" width="18" class="me-1" onerror="this.style.display='none'">
+                {{ strtoupper(app()->getLocale()) }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                 @foreach(LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
@@ -155,29 +197,20 @@
         </div>
     </div>
 
-    {{-- 2. Aşağı Naviqasiya (Bottom Navbar) --}}
+    {{-- === 2. MOBİL BOTTOM NAV (Menyu + Axtarış) === --}}
     <div class="mobile-bottom-nav d-lg-none">
-
+        {{-- Mobil menyuları çək --}}
         @php
-            // Mobil menyuları ROLA GÖRƏ filtrələyirik
-            $visible_mobile_menus = $mobile_menus->filter(function($menu) {
-                // Hamı görə bilərsə
+            // Yalnız mobil üçün filterlənmiş menyular
+            $visible_mobile_menus = isset($mobile_menus) ? $mobile_menus->filter(function($menu) {
                 if($menu->role == 'all') return true;
-
-                // Yalnız Qonaqlar (Giriş etməyənlər)
                 if($menu->role == 'guest' && !auth()->check()) return true;
-
-                // Yalnız İstifadəçilər (User + Doctor)
                 if($menu->role == 'auth_user' && auth()->check()) return true;
-
-                // Yalnız Həkimlər
-                if($menu->role == 'doctor' && auth()->check() && auth()->user()->hasRole('doctor')) return true;
-
                 return false;
-            });
+            }) : collect([]);
         @endphp
 
-        {{-- Sol Tərəf Menyular (Maksimum 2 ədəd) --}}
+        {{-- Sol 2 Menyu --}}
         @foreach($visible_mobile_menus->take(2) as $menu)
             <a href="{{ $menu->url }}" class="nav-item-mobile {{ request()->is(trim($menu->url, '/')) ? 'active' : '' }}">
                 <i class="{{ $menu->icon ?? 'fas fa-circle' }}"></i>
@@ -185,69 +218,38 @@
             </a>
         @endforeach
 
-        {{-- Əgər sol tərəfdə 2-dən az menyu varsa, boşluq burax ki, axtarış ortada qalsın --}}
-        @if($visible_mobile_menus->take(2)->count() < 2)
-             <div class="nav-placeholder"></div>
-        @endif
-
-        {{-- Mərkəzi Axtarış Düyməsi --}}
-        <div class="search-fab-container">
-            <div class="search-fab" data-bs-toggle="modal" data-bs-target="#searchModal">
-                <i class="fas fa-search"></i>
-            </div>
+        {{-- Axtarış --}}
+        <div class="search-fab" data-bs-toggle="modal" data-bs-target="#searchModal">
+            <i class="fas fa-search"></i>
         </div>
 
-        {{-- Sağ Tərəf Menyular (Növbəti 2 ədəd) --}}
+        {{-- Sağ 2 Menyu --}}
         @foreach($visible_mobile_menus->skip(2)->take(2) as $menu)
             <a href="{{ $menu->url }}" class="nav-item-mobile {{ request()->is(trim($menu->url, '/')) ? 'active' : '' }}">
                 <i class="{{ $menu->icon ?? 'fas fa-circle' }}"></i>
                 <span>{{ $menu->getTranslation('title', app()->getLocale()) }}</span>
             </a>
         @endforeach
-
-        {{-- Əgər sağ tərəfdə 2-dən az menyu varsa, boşluq burax --}}
-        @if($visible_mobile_menus->skip(2)->take(2)->count() < 2)
-             <div class="nav-placeholder"></div>
-        @endif
-
     </div>
 
-    {{-- Axtarış Modalı --}}
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-body p-4">
-                    <h5 class="mb-3 fw-bold">Axtarış</h5>
-                    <form action="#" method="GET">
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" class="form-control bg-light border-0" placeholder="Həkim, Xidmət və ya Məhsul axtar...">
-                        </div>
-                        <div class="d-grid mt-3">
-                            <button class="btn btn-primary">Axtar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- === 3. PC SIDEBAR (Fixed Left) === --}}
+    <aside class="pc-sidebar d-none d-lg-flex">
+        {{-- Logo --}}
+        <a href="{{ route('home') }}" class="sidebar-logo">
+            @php
+                // PC Logo Prioriteti: Sidebar Logo -> General Settings Logo
+                $pcLogo = $pc_sidebar->logo ? asset($pc_sidebar->logo) : ($settings->logo ? asset($settings->logo) : null);
+            @endphp
 
+            @if($pcLogo)
+                <img src="{{ $pcLogo }}" class="img-fluid" alt="Logo">
+            @else
+                <h4 class="fw-bold m-0 text-primary">{{ $settings->site_name ?? 'AzDoktor' }}</h4>
+            @endif
+        </a>
 
-    {{-- === PC ELEMENTLƏR === --}}
-
-    {{-- PC Sidebar --}}
-    <aside class="pc-sidebar">
-        <div class="mb-4 px-2">
-            <a href="{{ route('home') }}" class="d-block text-decoration-none text-reset">
-                @if($pc_sidebar->logo)
-                    <img src="{{ asset($pc_sidebar->logo) }}" class="img-fluid" style="max-height: 50px;" alt="Logo">
-                @else
-                    <h3 class="fw-bold m-0">{{ $settings->site_name ?? 'AzDoktor' }}</h3>
-                @endif
-            </a>
-        </div>
-
-        <nav class="flex-grow-1">
+        {{-- Naviqasiya --}}
+        <nav class="flex-grow-1 overflow-auto">
             @if(isset($pc_menus))
                 @foreach($pc_menus as $menu)
                     @include('partials.menu_item', ['menu' => $menu])
@@ -255,21 +257,44 @@
             @endif
         </nav>
 
+        {{-- Footer Hissəsi (Sidebar daxili): Dil + Profil --}}
         <div class="mt-auto pt-3 border-top">
+            {{-- Dil Dəyişdirici --}}
+            <div class="dropdown mb-3">
+                <button class="btn btn-light w-100 d-flex align-items-center justify-content-between border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <span><i class="fas fa-globe me-2 text-muted"></i> {{ LaravelLocalization::getCurrentLocaleNative() }}</span>
+                </button>
+                <ul class="dropdown-menu w-100 shadow">
+                    @foreach(LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-between" href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
+                                {{ $properties['native'] }}
+                                @if(app()->getLocale() == $localeCode) <i class="fas fa-check text-success"></i> @endif
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            {{-- Profil / Giriş --}}
             @guest
                 <div class="d-grid gap-2">
                     <a href="{{ route('login') }}" class="btn btn-primary">Giriş</a>
                 </div>
             @else
                 <div class="dropdown">
-                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-reset" data-bs-toggle="dropdown">
-                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px;">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-reset p-2 rounded hover-bg-light" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px;">
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
-                        <span class="text-truncate" style="max-width: 150px;">{{ Auth::user()->name }}</span>
+                        <div class="overflow-hidden">
+                            <div class="fw-bold text-truncate" style="max-width: 140px;">{{ Auth::user()->name }}</div>
+                            <small class="text-muted">Profilim</small>
+                        </div>
                     </a>
-                    <ul class="dropdown-menu shadow">
-                        <li><a class="dropdown-item" href="#">Profilim</a></li>
+                    <ul class="dropdown-menu w-100 shadow">
+                        <li><a class="dropdown-item" href="#">Tənzimləmələr</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -282,19 +307,51 @@
         </div>
     </aside>
 
-    {{-- Əsas Məzmun --}}
+    {{-- === 4. MAIN CONTENT WRAPPER === --}}
     <main class="main-content-wrapper">
-        @yield('content')
+        <div class="page-content">
+            @yield('content')
+        </div>
 
-        <footer class="bg-white text-center py-4 mt-auto border-top d-none d-lg-block">
+        <footer class="bg-white text-center py-4 border-top mt-auto d-none d-lg-block">
             <div class="container">
                 <small class="text-muted">
                     &copy; {{ date('Y') }} {{ $settings->site_name ?? 'AzDoktor' }}. Bütün hüquqlar qorunur.
                 </small>
+                @if(isset($settings->social_links))
+                    <div class="mt-2">
+                        @foreach($settings->social_links as $key => $link)
+                            @if($link)
+                                <a href="{{ $link }}" class="text-muted me-2" target="_blank"><i class="fab fa-{{ $key }}"></i></a>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </footer>
     </main>
 
+    {{-- Axtarış Modalı --}}
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body p-4">
+                    <h5 class="mb-3 fw-bold">Axtarış</h5>
+                    <form action="#" method="GET">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" class="form-control bg-light border-0" placeholder="Axtar...">
+                        </div>
+                        <div class="d-grid mt-3">
+                            <button class="btn btn-primary">Axtar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>

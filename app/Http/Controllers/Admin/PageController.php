@@ -4,25 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
-use App\Models\Language; // Language modelini əlavə etdik
+use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
 class PageController extends Controller
 {
+    /**
+     * Səhifələrin Siyahısı
+     * Əgər standart səhifələr yoxdursa, avtomatik yaradır.
+     */
     public function index()
     {
         // 1. Bazadakı aktiv dilləri çəkirik
         $activeLanguages = Language::where('status', true)->get();
 
-        // 2. Standart səhifələrin baza tərcümələri (Ərəb dili daxil olmaqla)
+        // 2. Standart səhifələrin baza tərcümələri
         $standardsDefaults = [
             'home' => [
                 'az' => 'Ana Səhifə',
                 'en' => 'Home',
                 'ru' => 'Главная',
-                'ar' => 'الرئيسية' // RTL
+                'ar' => 'الرئيسية'
             ],
             'about' => [
                 'az' => 'Haqqımızda',
@@ -58,13 +62,10 @@ class PageController extends Controller
                 $page->is_standard = true;
                 $page->status = true;
 
-                // Hər bir aktiv dil üçün başlığı təyin edirik
                 foreach ($activeLanguages as $lang) {
-                    // Əgər massivdə tərcümə varsa götür, yoxdursa EN götür, o da yoxdursa slug-ı yaz
                     $title = $translations[$lang->code] ?? $translations['en'] ?? ucfirst($slug);
-
                     $page->setTranslation('title', $lang->code, $title);
-                    $page->setTranslation('content', $lang->code, ''); // Boş məzmun
+                    $page->setTranslation('content', $lang->code, '');
                 }
                 $page->save();
             }
@@ -76,14 +77,12 @@ class PageController extends Controller
 
     public function create()
     {
-        // Aktiv dilləri gətiririk
         $languages = Language::where('status', true)->get();
         return view('admin.pages.create', compact('languages'));
     }
 
     public function store(Request $request)
     {
-        // Validasiya: Hazırkı admin panel dilində başlıq mütləq olmalıdır
         $currentLocale = app()->getLocale();
 
         $request->validate([
@@ -91,23 +90,19 @@ class PageController extends Controller
         ]);
 
         $page = new Page();
-        // Spatie translatable array qəbul edir
         $page->title = $request->title;
         $page->content = $request->content;
 
-        // Slug yaratmaq (Mövcud olan ilk dildən)
         $titleForSlug = $request->title[$currentLocale] ?? array_values($request->title)[0] ?? 'no-title';
         $page->slug = Str::slug($titleForSlug);
 
         $page->is_standard = false;
         $page->status = $request->has('status');
 
-        // SEO sahələri
         $page->seo_title = $request->seo_title;
         $page->seo_description = $request->seo_description;
         $page->seo_keywords = $request->seo_keywords;
 
-        // Şəkil varsa yüklə
         if ($request->hasFile('image')) {
             $page->image = $this->uploadFile($request->file('image'), 'pages');
         }
@@ -120,19 +115,23 @@ class PageController extends Controller
     public function edit($id)
     {
         $page = Page::findOrFail($id);
-        // Aktiv dilləri gətiririk
         $languages = Language::where('status', true)->get();
         return view('admin.pages.edit', compact('page', 'languages'));
     }
 
+    /**
+     * YENİLƏMƏ METODU (Ən Vacib Hissə)
+     * Burada "Haqqımızda" səhifəsinin blokları işlənir.
+     */
     public function update(Request $request, $id)
     {
         $page = Page::findOrFail($id);
 
+        // 1. Standart Məlumatlar
         $page->title = $request->title;
         $page->content = $request->content;
 
-        // Yalnız standart olmayan səhifələrin slug-ı dəyişə bilər
+        // Standart səhifələrin URL-i dəyişməsin
         if (!$page->is_standard) {
             $currentLocale = app()->getLocale();
             $titleForSlug = $request->title[$currentLocale] ?? array_values($request->title)[0] ?? 'no-title';
@@ -141,15 +140,15 @@ class PageController extends Controller
 
         $page->status = $request->has('status');
 
-        // SEO sahələri
+        // SEO
         $page->seo_title = $request->seo_title;
         $page->seo_description = $request->seo_description;
         $page->seo_keywords = $request->seo_keywords;
 
-        // Meta (Əlavə ayarlar)
+        // --- META MƏLUMATLARI (JSON) ---
         $meta = $page->meta ?? [];
 
-        // Ana Səhifə üçün Xüsusi Ayarlar (Banner, Həkim sayı)
+        // A) ANA SƏHİFƏ AYARLARI
         if ($page->slug == 'home') {
             $meta['doctor_count'] = $request->doctor_count;
 
@@ -158,7 +157,34 @@ class PageController extends Controller
             }
         }
 
-        // Ümumi şəkil (Banner və ya Paylaşım şəkli)
+        // B) HAQQIMIZDA SƏHİFƏSİ - DİNAMİK BLOKLAR
+        if ($page->slug == 'about') {
+            $sections = [];
+
+            // Yalnız formda sections varsa emal edirik
+            if ($request->has('sections')) {
+                foreach ($request->sections as $key => $sectionData) {
+                    // Mövcud data strukturunu qururuq
+                    $section = [
+                        'title' => $sectionData['title'] ?? [],
+                        'content' => $sectionData['content'] ?? [],
+                        'image' => $sectionData['old_image'] ?? null, // Əgər yeni şəkil yoxdursa, köhnəni saxla
+                    ];
+
+                    // Yeni şəkil yüklənibsə, onu əvəz et
+                    if ($request->hasFile("sections.$key.image")) {
+                        $section['image'] = $this->uploadFile($request->file("sections.$key.image"), 'pages/about');
+                    }
+
+                    $sections[] = $section;
+                }
+            }
+
+            // Hazır massivi meta-ya yazırıq
+            $meta['sections'] = $sections;
+        }
+
+        // Ümumi Səhifə Şəkli (SEO Image və ya Banner)
         if ($request->hasFile('image')) {
             $page->image = $this->uploadFile($request->file('image'), 'pages');
         }
@@ -184,7 +210,8 @@ class PageController extends Controller
     // Şəkil yükləmək üçün köməkçi funksiya
     private function uploadFile($file, $folder)
     {
-        $filename = time() . '_' . $file->getClientOriginalName();
+        // Unikal ad yaradırıq ki, çakışma olmasın
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $file->move(public_path('uploads/' . $folder), $filename);
         return 'uploads/' . $folder . '/' . $filename;
     }

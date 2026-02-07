@@ -9,9 +9,9 @@ use App\Models\GeneralSetting;
 use App\Models\Sidebar;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Menu;       // Menyu Builder üçün
-use App\Models\Doctor;     // Ana səhifə Həkimlər üçün
-use App\Models\Specialty;  // Ana səhifə İxtisas filtri üçün
+use App\Models\Menu;
+use App\Models\Doctor;
+use App\Models\Specialty;
 use Illuminate\Support\Facades\View;
 
 class PublicController extends Controller
@@ -74,15 +74,17 @@ class PublicController extends Controller
         // --- YENİ ANA SƏHİFƏ MƏNTİQİ ---
 
         // 1. Axtarış Paneli üçün Filtrlər
-        $specialties = Specialty::all(); // İxtisaslar
-        $clinics = Clinic::where('status', true)->get(); // Klinikalar
+        $specialties = Specialty::all();
+        $clinics = Clinic::where('status', true)->get();
 
         // 2. Vitrin Həkimləri (Son əlavə olunanlar)
-        // 'with' istifadə edirik ki, əlaqəli məlumatlar (İxtisas, Klinika) bir sorğuda gəlsin
+        // Admin paneldə təyin olunan say (default 12)
+        $limit = $page->getMeta('doctor_count', 12);
+
         $doctors = Doctor::with(['specialty', 'clinic'])
                          ->where('status', true)
                          ->orderBy('id', 'desc')
-                         ->take(12) // Limit: 12 həkim
+                         ->take($limit)
                          ->get();
 
         return view('public.standart.home', compact('page', 'doctors', 'specialties', 'clinics'));
@@ -137,9 +139,9 @@ class PublicController extends Controller
     }
 
     /**
-     * Mağaza (Shop)
+     * Mağaza (Shop) - Axtarış funksiyası əlavə edildi
      */
-    public function shop()
+    public function shop(Request $request)
     {
         $page = Page::where('slug', 'shop')->first();
 
@@ -148,10 +150,26 @@ class PublicController extends Controller
             $page->setTranslation('title', 'az', 'Mağaza');
         }
 
+        // Məhsul sorğusu
+        $query = Product::where('status', 1);
+
+        // Axtarış (q parametri varsa)
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            // JSON sütunda axtarış (bütün dillərdə axtarır)
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Kateqoriya filteri (opsional)
+        if ($request->has('category')) {
+            $query->where('category_id', $request->category);
+        }
+
         // Məhsulları gətir (Yenilər öndə)
-        $products = Product::where('status', 1)
-                           ->orderBy('created_at', 'desc')
-                           ->paginate(12);
+        $products = $query->orderBy('created_at', 'desc')->paginate(12);
+
+        // Axtarış parametrlərini pagination linklərinə əlavə et
+        $products->appends($request->all());
 
         // Kateqoriyaları gətir (Sidebar filteri üçün)
         $categories = Category::where('type', 'product')->get();

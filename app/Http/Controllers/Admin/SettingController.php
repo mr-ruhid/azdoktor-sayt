@@ -33,6 +33,7 @@ class SettingController extends Controller
     {
         $setting = $this->getSetting();
 
+        // SEO və Sayt Adı
         $data = $request->only(['site_name', 'seo_title', 'seo_description', 'seo_keywords']);
 
         // Logo Yükləmə
@@ -58,7 +59,7 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'Tənzimləmələr uğurla yeniləndi.');
     }
 
-    // --- Ümumi Ayarlar (Maintenance, Auth, 2FA) ---
+    // --- Ümumi Ayarlar (Maintenance, Auth, 2FA) və ƏLAQƏ ---
     public function general()
     {
         $setting = $this->getSetting();
@@ -70,7 +71,7 @@ class SettingController extends Controller
     {
         $setting = $this->getSetting();
 
-        // Checkbox-lar göndərilməyəndə false olsun deyə əvvəlcə hamısını yoxlayırıq
+        // 1. Sistem Ayarları (Checkbox-lar)
         $data = [
             'maintenance_mode' => $request->has('maintenance_mode'),
             'enable_registration' => $request->has('enable_registration'),
@@ -78,17 +79,32 @@ class SettingController extends Controller
             'enable_social_login' => $request->has('enable_social_login'),
             'auth_2fa_admin' => $request->has('auth_2fa_admin'),
             'auth_2fa_user' => $request->has('auth_2fa_user'),
-            'maintenance_text' => $request->input('maintenance_text'),
+            'maintenance_text' => $request->input('maintenance_text'), // Tərcüməli
+        ];
+
+        // 2. Əlaqə Məlumatları (YENİ ƏLAVƏ)
+        $data['phone'] = $request->phone;
+        $data['email'] = $request->email;
+        $data['map_iframe'] = $request->map_iframe;
+        $data['address'] = $request->address; // Tərcüməli sahə (array gəlir)
+
+        // 3. Sosial Media Linkləri (JSON Array)
+        $data['social_links'] = [
+            'facebook'  => $request->social_facebook,
+            'instagram' => $request->social_instagram,
+            'twitter'   => $request->social_twitter,
+            'whatsapp'  => $request->social_whatsapp,
+            'youtube'   => $request->social_youtube,
         ];
 
         $setting->update($data);
 
-        // Middleware tərəfindən istifadə olunan cache-i təmizləmək vacibdir
+        // Middleware cache təmizləmə
         try {
             Artisan::call('optimize:clear');
         } catch (\Exception $e) {}
 
-        return redirect()->back()->with('success', 'Ümumi ayarlar yeniləndi.');
+        return redirect()->back()->with('success', 'Ümumi və Əlaqə ayarları yeniləndi.');
     }
 
     // --- SMTP (E-poçt) Hissəsi ---
@@ -115,7 +131,6 @@ class SettingController extends Controller
 
         $setting->update($data);
 
-        // Config cache-i təmizləyirik ki, yeni e-poçt ayarları dərhal tətbiq olunsun
         try {
             Artisan::call('config:clear');
         } catch (\Exception $e) {}
