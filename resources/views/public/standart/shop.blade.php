@@ -118,10 +118,10 @@
         @endforelse
     </div>
 
-    {{-- Pagination (Səhifələmə) --}}
+    {{-- Pagination (Səhifələmə) - Bootstrap 5 Şablonu ilə --}}
     @if($products->hasPages())
-        <div class="d-flex justify-content-center mt-5">
-            {{ $products->links() }}
+        <div class="d-flex justify-content-center mt-5 custom-pagination">
+            {{ $products->links('pagination::bootstrap-5') }}
         </div>
     @endif
 </div>
@@ -139,6 +139,30 @@
     /* Hover zamanı düymələri göstər */
     .product-card:hover .product-actions {
         top: 0 !important;
+    }
+
+    /* Pagination Dizaynı (Yuvarlaq və Modern) */
+    .custom-pagination .page-link {
+        border-radius: 50px !important;
+        margin: 0 5px;
+        border: none;
+        color: #333;
+        font-weight: 600;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .custom-pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
+    .custom-pagination .page-link:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
     }
 </style>
 @endsection

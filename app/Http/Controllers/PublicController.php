@@ -9,9 +9,9 @@ use App\Models\GeneralSetting;
 use App\Models\Sidebar;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Menu;
-use App\Models\Doctor;
-use App\Models\Specialty;
+use App\Models\Menu;      // Menyu Builder üçün
+use App\Models\Doctor;    // Ana səhifə Həkimlər üçün
+use App\Models\Specialty; // Ana səhifə İxtisas filtri üçün
 use Illuminate\Support\Facades\View;
 
 class PublicController extends Controller
@@ -74,18 +74,18 @@ class PublicController extends Controller
         // --- YENİ ANA SƏHİFƏ MƏNTİQİ ---
 
         // 1. Axtarış Paneli üçün Filtrlər
-        $specialties = Specialty::all();
-        $clinics = Clinic::where('status', true)->get();
+        $specialties = Specialty::all(); // İxtisaslar
+        $clinics = Clinic::where('status', true)->get(); // Klinikalar
 
         // 2. Vitrin Həkimləri (Son əlavə olunanlar)
-        // Admin paneldə təyin olunan say (default 12)
-        $limit = $page->getMeta('doctor_count', 12);
+        // Admin paneldə təyin olunan say (Səhifə başına düşən say)
+        $perPage = $page->getMeta('doctor_count', 12);
 
+        // 'take()' yerinə 'paginate()' istifadə edirik ki, Blade-də ->links() işləsin
         $doctors = Doctor::with(['specialty', 'clinic'])
                          ->where('status', true)
                          ->orderBy('id', 'desc')
-                         ->take($limit)
-                         ->get();
+                         ->paginate($perPage);
 
         return view('public.standart.home', compact('page', 'doctors', 'specialties', 'clinics'));
     }
@@ -124,7 +124,7 @@ class PublicController extends Controller
     /**
      * Klinikalar Siyahısı
      */
-    public function clinics()
+    public function clinics(Request $request)
     {
         $page = Page::where('slug', 'clinics')->first();
 
@@ -133,13 +133,27 @@ class PublicController extends Controller
             $page->setTranslation('title', 'az', 'Klinikalar');
         }
 
-        $clinics = Clinic::where('status', true)->paginate(12);
+        $query = Clinic::where('status', true);
+
+        // Axtarış Məntiqi (Ad və Ünvan)
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        $clinics = $query->paginate(12);
+
+        // Axtarış parametrini pagination linklərinə əlavə et
+        $clinics->appends($request->all());
 
         return view('public.standart.clinics', compact('page', 'clinics'));
     }
 
     /**
-     * Mağaza (Shop) - Axtarış funksiyası əlavə edildi
+     * Mağaza (Shop)
      */
     public function shop(Request $request)
     {

@@ -75,10 +75,10 @@
         @endforelse
     </div>
 
-    {{-- Pagination --}}
+    {{-- Pagination (Səhifələmə) - Yenilənmiş --}}
     @if($clinics->hasPages())
-        <div class="d-flex justify-content-center mt-5">
-            {{ $clinics->links() }}
+        <div class="d-flex justify-content-center mt-5 custom-pagination">
+            {{ $clinics->links('pagination::bootstrap-5') }}
         </div>
     @endif
 </div>
@@ -87,5 +87,29 @@
     .object-fit-cover { object-fit: cover; }
     .clinic-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
     .clinic-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+
+    /* Pagination Dizaynı (Yuvarlaq və Modern) */
+    .custom-pagination .page-link {
+        border-radius: 50px !important;
+        margin: 0 5px;
+        border: none;
+        color: #333;
+        font-weight: 600;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .custom-pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
+    .custom-pagination .page-link:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
+    }
 </style>
 @endsection
