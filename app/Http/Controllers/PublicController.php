@@ -9,9 +9,9 @@ use App\Models\GeneralSetting;
 use App\Models\Sidebar;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Menu;      // Menyu Builder üçün
-use App\Models\Doctor;    // Ana səhifə Həkimlər üçün
-use App\Models\Specialty; // Ana səhifə İxtisas filtri üçün
+use App\Models\Menu;
+use App\Models\Doctor;
+use App\Models\Specialty;
 use Illuminate\Support\Facades\View;
 
 class PublicController extends Controller
@@ -74,18 +74,17 @@ class PublicController extends Controller
         // --- YENİ ANA SƏHİFƏ MƏNTİQİ ---
 
         // 1. Axtarış Paneli üçün Filtrlər
-        $specialties = Specialty::all(); // İxtisaslar
-        $clinics = Clinic::where('status', true)->get(); // Klinikalar
+        $specialties = Specialty::all();
+        $clinics = Clinic::where('status', true)->get();
 
         // 2. Vitrin Həkimləri (Son əlavə olunanlar)
-        // Admin paneldə təyin olunan say (Səhifə başına düşən say)
-        $perPage = $page->getMeta('doctor_count', 12);
+        // Admin paneldə təyin olunan say (default 12)
+        $limit = $page->getMeta('doctor_count', 12);
 
-        // 'take()' yerinə 'paginate()' istifadə edirik ki, Blade-də ->links() işləsin
         $doctors = Doctor::with(['specialty', 'clinic'])
                          ->where('status', true)
                          ->orderBy('id', 'desc')
-                         ->paginate($perPage);
+                         ->paginate($limit);
 
         return view('public.standart.home', compact('page', 'doctors', 'specialties', 'clinics'));
     }
@@ -153,7 +152,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Mağaza (Shop)
+     * Mağaza (Shop) - Axtarış funksiyası əlavə edildi
      */
     public function shop(Request $request)
     {
@@ -198,5 +197,23 @@ class PublicController extends Controller
     {
         $page = Page::where('slug', $slug)->where('status', true)->firstOrFail();
         return view('public.standart.page', compact('page'));
+    }
+
+    /**
+     * Həkim Detalları Səhifəsi (YENİ)
+     */
+    public function doctorShow($id)
+    {
+        // Həkimi tapırıq (Status aktiv olmalıdır)
+        $doctor = Doctor::with(['clinic', 'specialty'])
+            ->where('status', true)
+            ->findOrFail($id);
+
+        // Dinamik "Page" obyekti yaradırıq ki, Layout-da Title düzgün görünsün
+        $page = new Page();
+        $name = $doctor->getTranslation('first_name', app()->getLocale()) . ' ' . $doctor->getTranslation('last_name', app()->getLocale());
+        $page->setTranslation('title', app()->getLocale(), $name);
+
+        return view('public.standart.doctor', compact('doctor', 'page'));
     }
 }

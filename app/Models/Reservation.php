@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'doctor_id',
         'user_id',
@@ -13,17 +16,16 @@ class Reservation extends Model
         'phone',
         'email',
         'reservation_date',
-        'reservation_time',
-        'status',
+        'time',   // DİQQƏT: 'reservation_time' əvəzinə 'time' istifadə edirik (Doctor modeli ilə uyğunluq üçün)
+        'status', // pending, confirmed, completed, cancelled
         'note'
     ];
 
     protected $casts = [
         'reservation_date' => 'date',
-        // 'reservation_time' => 'datetime:H:i', // Formatlamaq istəsəniz
     ];
 
-    // Statusun rəngi
+    // Statusun rəngi (Admin Panel üçün)
     public function getStatusBadgeAttribute()
     {
         return match($this->status) {
@@ -35,7 +37,7 @@ class Reservation extends Model
         };
     }
 
-    // Statusun mətni (Tərcümə üçün sadə variant)
+    // Statusun mətni (Admin Panel üçün)
     public function getStatusLabelAttribute()
     {
         return match($this->status) {
