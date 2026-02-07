@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+
+// Admin Controllers
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SpecialtyController;
@@ -32,6 +34,11 @@ use App\Http\Controllers\Admin\TwoFactorController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\ToolController;
+use App\Http\Controllers\Admin\SidebarController;
+use App\Http\Controllers\Admin\PageController;
+
+// Public Controller
+use App\Http\Controllers\PublicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,13 +53,21 @@ Route::group(
     ],
     function() {
 
-        // Əsas Səhifə (Front)
-        Route::get('/', function () {
-            return view('welcome');
-        });
+        // --- PUBLIC (FRONTEND) ROUTES ---
+        // Bu hissə saytın ön tərəfidir (Admin olmayanlar üçün)
 
-        // Standart Laravel Auth Routeları
+        Route::get('/', [PublicController::class, 'index'])->name('home');
+        Route::get('/about', [PublicController::class, 'about'])->name('about');
+        Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
+        Route::get('/clinics', [PublicController::class, 'clinics'])->name('clinics');
+        Route::get('/shop', [PublicController::class, 'shop'])->name('shop');
+        // Dinamik səhifələr üçün (məs: /privacy-policy)
+        Route::get('/page/{slug}', [PublicController::class, 'page'])->name('page.show');
+
+
+        // --- AUTH ROUTES ---
         Auth::routes(['register' => false, 'verify' => true]);
+
 
         // --- ADMIN PANEL ROUTE-LARI ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
@@ -69,13 +84,21 @@ Route::group(
                 Route::get('/', function () { return view('admin.dashboard'); })->name('dashboard');
 
                 // --- Məzmun İdarəetməsi ---
+
+                // Səhifələr
+                Route::resource('pages', PageController::class);
+
                 Route::prefix('pages')->name('pages.')->group(function() {
                     Route::get('/', function() { return 'Səhifələr Siyahısı'; })->name('index');
                     Route::get('/create', function() { return 'Yeni Səhifə'; })->name('create');
                 });
 
                 Route::get('menus', function() { return 'Menyular'; })->name('menus.index');
-                Route::get('sidebars', function() { return 'Yan Panellər'; })->name('sidebars.index');
+
+                // Yan Panellər (Sidebars)
+                Route::get('sidebars', [SidebarController::class, 'index'])->name('sidebars.index');
+                Route::get('sidebars/{id}/edit', [SidebarController::class, 'edit'])->name('sidebars.edit');
+                Route::put('sidebars/{id}', [SidebarController::class, 'update'])->name('sidebars.update');
 
                 // Paylaşımlar
                 Route::resource('posts', PostController::class);
