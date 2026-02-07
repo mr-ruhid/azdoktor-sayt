@@ -56,8 +56,36 @@ class Doctor extends Model
         return $this->belongsTo(Specialty::class);
     }
 
+    // Full Name Accessor (Ad + Soyad)
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    /**
+     * View tərəfində $doctor->name çağırılanda işləməsi üçün.
+     */
+    public function getNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
+    /**
+     * Spatie Media Library olmadıqda View xətasını önləmək üçün metod.
+     * 'image' sütunundakı şəkli qaytarır.
+     */
+    public function getFirstMediaUrl($collectionName = 'default')
+    {
+        if (!empty($this->image)) {
+            // Əgər tam URL-dirsə (http ilə başlayırsa)
+            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+                return $this->image;
+            }
+            // Əgər lokal fayldırsa (public qovluğuna əsasən)
+            return asset($this->image);
+        }
+
+        // Şəkil yoxdursa standart placeholder
+        return 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
     }
 }

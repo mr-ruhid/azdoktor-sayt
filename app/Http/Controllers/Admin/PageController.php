@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Page;
-use App\Models\Language;
+use App\Models\Language; // Language modelini əlavə etdik
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
@@ -13,42 +13,106 @@ class PageController extends Controller
 {
     public function index()
     {
-        $pages = Page::latest()->paginate(10);
+        // 1. Bazadakı aktiv dilləri çəkirik
+        $activeLanguages = Language::where('status', true)->get();
+
+        // 2. Standart səhifələrin baza tərcümələri (Ərəb dili daxil olmaqla)
+        $standardsDefaults = [
+            'home' => [
+                'az' => 'Ana Səhifə',
+                'en' => 'Home',
+                'ru' => 'Главная',
+                'ar' => 'الرئيسية' // RTL
+            ],
+            'about' => [
+                'az' => 'Haqqımızda',
+                'en' => 'About Us',
+                'ru' => 'О нас',
+                'ar' => 'من نحن'
+            ],
+            'contact' => [
+                'az' => 'Əlaqə',
+                'en' => 'Contact',
+                'ru' => 'Контакты',
+                'ar' => 'اتصل بنا'
+            ],
+            'clinics' => [
+                'az' => 'Klinikalar',
+                'en' => 'Clinics',
+                'ru' => 'Клиники',
+                'ar' => 'العيادات'
+            ],
+            'shop' => [
+                'az' => 'Mağaza',
+                'en' => 'Shop',
+                'ru' => 'Магазин',
+                'ar' => 'المتجر'
+            ],
+        ];
+
+        // 3. Yoxlayırıq: əgər standart səhifələr yoxdursa, yaradırıq
+        foreach ($standardsDefaults as $slug => $translations) {
+            if (!Page::where('slug', $slug)->exists()) {
+                $page = new Page();
+                $page->slug = $slug;
+                $page->is_standard = true;
+                $page->status = true;
+
+                // Hər bir aktiv dil üçün başlığı təyin edirik
+                foreach ($activeLanguages as $lang) {
+                    // Əgər massivdə tərcümə varsa götür, yoxdursa EN götür, o da yoxdursa slug-ı yaz
+                    $title = $translations[$lang->code] ?? $translations['en'] ?? ucfirst($slug);
+
+                    $page->setTranslation('title', $lang->code, $title);
+                    $page->setTranslation('content', $lang->code, ''); // Boş məzmun
+                }
+                $page->save();
+            }
+        }
+
+        $pages = Page::orderBy('is_standard', 'desc')->orderBy('created_at', 'desc')->get();
         return view('admin.pages.index', compact('pages'));
     }
 
     public function create()
     {
+        // Aktiv dilləri gətiririk
         $languages = Language::where('status', true)->get();
         return view('admin.pages.create', compact('languages'));
     }
 
     public function store(Request $request)
     {
-        $defaultLang = Language::where('is_default', true)->first()->code;
+        // Validasiya: Hazırkı admin panel dilində başlıq mütləq olmalıdır
+        $currentLocale = app()->getLocale();
 
         $request->validate([
-            "title.$defaultLang" => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048',
+            "title.$currentLocale" => 'required',
         ]);
 
-        $data = $request->except(['image', '_token']);
+        $page = new Page();
+        // Spatie translatable array qəbul edir
+        $page->title = $request->title;
+        $page->content = $request->content;
 
-        $data['slug'] = Str::slug($request->input("title.$defaultLang"));
-        if(Page::where('slug', $data['slug'])->exists()){
-            $data['slug'] .= '-' . time();
-        }
+        // Slug yaratmaq (Mövcud olan ilk dildən)
+        $titleForSlug = $request->title[$currentLocale] ?? array_values($request->title)[0] ?? 'no-title';
+        $page->slug = Str::slug($titleForSlug);
 
-        $data['status'] = $request->has('status');
+        $page->is_standard = false;
+        $page->status = $request->has('status');
 
+        // SEO sahələri
+        $page->seo_title = $request->seo_title;
+        $page->seo_description = $request->seo_description;
+        $page->seo_keywords = $request->seo_keywords;
+
+        // Şəkil varsa yüklə
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/pages'), $filename);
-            $data['image'] = 'uploads/pages/' . $filename;
+            $page->image = $this->uploadFile($request->file('image'), 'pages');
         }
 
-        Page::create($data);
+        $page->save();
 
         return redirect()->route('admin.pages.index')->with('success', 'Səhifə yaradıldı.');
     }
@@ -56,6 +120,7 @@ class PageController extends Controller
     public function edit($id)
     {
         $page = Page::findOrFail($id);
+        // Aktiv dilləri gətiririk
         $languages = Language::where('status', true)->get();
         return view('admin.pages.edit', compact('page', 'languages'));
     }
@@ -63,37 +128,43 @@ class PageController extends Controller
     public function update(Request $request, $id)
     {
         $page = Page::findOrFail($id);
-        $defaultLang = Language::where('is_default', true)->first()->code;
 
-        $request->validate([
-            "title.$defaultLang" => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        $page->title = $request->title;
+        $page->content = $request->content;
 
-        $data = $request->except(['image', '_token', '_method']);
-
-        // Slug yenilənməsi
-        $newSlug = Str::slug($request->input("title.$defaultLang"));
-        if($page->slug !== $newSlug){
-             if(Page::where('slug', $newSlug)->where('id', '!=', $id)->exists()){
-                $newSlug .= '-' . time();
-            }
-            $data['slug'] = $newSlug;
+        // Yalnız standart olmayan səhifələrin slug-ı dəyişə bilər
+        if (!$page->is_standard) {
+            $currentLocale = app()->getLocale();
+            $titleForSlug = $request->title[$currentLocale] ?? array_values($request->title)[0] ?? 'no-title';
+            $page->slug = Str::slug($titleForSlug);
         }
 
-        $data['status'] = $request->has('status');
+        $page->status = $request->has('status');
 
+        // SEO sahələri
+        $page->seo_title = $request->seo_title;
+        $page->seo_description = $request->seo_description;
+        $page->seo_keywords = $request->seo_keywords;
+
+        // Meta (Əlavə ayarlar)
+        $meta = $page->meta ?? [];
+
+        // Ana Səhifə üçün Xüsusi Ayarlar (Banner, Həkim sayı)
+        if ($page->slug == 'home') {
+            $meta['doctor_count'] = $request->doctor_count;
+
+            if ($request->hasFile('banner_image')) {
+                $meta['banner_image'] = $this->uploadFile($request->file('banner_image'), 'pages/banners');
+            }
+        }
+
+        // Ümumi şəkil (Banner və ya Paylaşım şəkli)
         if ($request->hasFile('image')) {
-            if ($page->image && File::exists(public_path($page->image))) {
-                File::delete(public_path($page->image));
-            }
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/pages'), $filename);
-            $data['image'] = 'uploads/pages/' . $filename;
+            $page->image = $this->uploadFile($request->file('image'), 'pages');
         }
 
-        $page->update($data);
+        $page->meta = $meta;
+        $page->save();
 
         return redirect()->route('admin.pages.index')->with('success', 'Səhifə yeniləndi.');
     }
@@ -101,11 +172,20 @@ class PageController extends Controller
     public function destroy($id)
     {
         $page = Page::findOrFail($id);
-        if ($page->image && File::exists(public_path($page->image))) {
-            File::delete(public_path($page->image));
-        }
-        $page->delete();
 
-        return redirect()->back()->with('success', 'Səhifə silindi.');
+        if ($page->is_standard) {
+            return redirect()->back()->with('error', 'Bu standart sistem səhifəsidir, silinə bilməz!');
+        }
+
+        $page->delete();
+        return redirect()->route('admin.pages.index')->with('success', 'Səhifə silindi.');
+    }
+
+    // Şəkil yükləmək üçün köməkçi funksiya
+    private function uploadFile($file, $folder)
+    {
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('uploads/' . $folder), $filename);
+        return 'uploads/' . $folder . '/' . $filename;
     }
 }

@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('menu.admin_panel_title') }}</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Toastr CSS (Bildirişlər üçün - YENİ) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; }
@@ -93,17 +97,14 @@
         <!-- Tibb Bölməsi -->
         <div class="nav-header">{{ __('menu.medical_section') }}</div>
         <a href="{{ route('admin.doctors.index') }}" class="{{ request()->routeIs('admin.doctors.*') ? 'active' : '' }}"><i class="fas fa-user-md nav-icon"></i> {{ __('menu.doctors') }}</a>
-        <!-- YENİ: Həkim Hesabları -->
         <a href="{{ route('admin.doctor_accounts.index') }}" class="{{ request()->routeIs('admin.doctor_accounts.*') ? 'active' : '' }}"><i class="fas fa-id-card nav-icon"></i> {{ __('menu.doctor_accounts') }}</a>
         <a href="{{ route('admin.clinics.index') }}" class="{{ request()->routeIs('admin.clinics.*') ? 'active' : '' }}"><i class="fas fa-hospital nav-icon"></i> {{ __('menu.clinics') }}</a>
-        <!-- YENİ: İxtisaslar (Xidmətlər əvəzinə) -->
         <a href="{{ route('admin.specialties.index') }}" class="{{ request()->routeIs('admin.specialties.*') ? 'active' : '' }}"><i class="fas fa-briefcase-medical nav-icon"></i> {{ __('menu.specialties') }}</a>
         <a href="{{ route('admin.reservations.index') }}" class="{{ request()->routeIs('admin.reservations.*') ? 'active' : '' }}"><i class="fas fa-calendar-check nav-icon"></i> {{ __('menu.reservations') }}</a>
         <a href="{{ route('admin.doctor_requests.index') }}" class="{{ request()->routeIs('admin.doctor_requests.*') ? 'active' : '' }}"><i class="fas fa-user-plus nav-icon"></i> {{ __('menu.doctor_requests') }}</a>
 
         <!-- E-Ticarət (Aptek) -->
         <div class="nav-header">{{ __('menu.ecommerce') }}</div>
-        <!-- YENİ: Xidmətlər (Tibb bölməsindən bura gəldi) -->
         <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}"><i class="fas fa-stethoscope nav-icon"></i> {{ __('menu.services') }}</a>
 
         <a class="dropdown-btn" onclick="toggleMenu('productsMenu', this)">
@@ -145,7 +146,6 @@
 
             <a href="{{ route('languages.index') }}" class="{{ request()->routeIs('languages.*') ? 'active' : '' }}">{{ __('menu.languages') }}</a>
 
-            <!-- API İnteqrasiyaları -->
             <a href="#" class="text-warning"><i class="fas fa-code me-1"></i> {{ __('menu.api_integrations') }}</a>
             <a href="{{ route('admin.api.my') }}" class="{{ request()->routeIs('admin.api.my') ? 'active' : '' }}" style="padding-left: 35px;">{{ __('menu.my_apis') }}</a>
             <a href="{{ route('admin.api.shared') }}" class="{{ request()->routeIs('admin.api.shared') ? 'active' : '' }}" style="padding-left: 35px;">{{ __('menu.shared_apis') }}</a>
@@ -213,12 +213,34 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser1">
                         <li><a class="dropdown-item" href="#">{{ __('menu.profile') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#">{{ __('menu.logout') }}</a></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                {{ __('menu.logout') }}
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
     </nav>
+
+    <!-- Bildirişlər (Session Alerts) - YENİ -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     @yield('content')
 
@@ -226,6 +248,12 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- jQuery (YENİ - Drag&Drop üçün vacib) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Toastr JS (YENİ) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <script>
     // Menyu açma/bağlama funksiyası (icon animasiyası ilə)
     function toggleMenu(id, element) {
@@ -246,5 +274,9 @@
         document.getElementById('sidebar').classList.toggle('active');
     }
 </script>
+
+<!-- YENİ: Xüsusi sehifə skriptləri üçün yer -->
+@yield('scripts')
+
 </body>
 </html>

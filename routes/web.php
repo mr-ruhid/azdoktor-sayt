@@ -36,6 +36,7 @@ use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\ToolController;
 use App\Http\Controllers\Admin\SidebarController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\MenuController; // Menyu Controlleri əlavə edildi
 
 // Public Controller
 use App\Http\Controllers\PublicController;
@@ -55,19 +56,16 @@ Route::group(
 
         // --- PUBLIC (FRONTEND) ROUTES ---
         // Bu hissə saytın ön tərəfidir (Admin olmayanlar üçün)
-
         Route::get('/', [PublicController::class, 'index'])->name('home');
         Route::get('/about', [PublicController::class, 'about'])->name('about');
         Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
         Route::get('/clinics', [PublicController::class, 'clinics'])->name('clinics');
         Route::get('/shop', [PublicController::class, 'shop'])->name('shop');
-        // Dinamik səhifələr üçün (məs: /privacy-policy)
+        // Dinamik səhifələr üçün
         Route::get('/page/{slug}', [PublicController::class, 'page'])->name('page.show');
-
 
         // --- AUTH ROUTES ---
         Auth::routes(['register' => false, 'verify' => true]);
-
 
         // --- ADMIN PANEL ROUTE-LARI ---
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
@@ -80,27 +78,24 @@ Route::group(
             // 2. Qorunan Admin Səhifələri (2FA Middleware tətbiq olunur)
             Route::group(['middleware' => ['admin.2fa']], function () {
 
-                // Başlanğıc
+                // Başlanğıc (Dashboard)
                 Route::get('/', function () { return view('admin.dashboard'); })->name('dashboard');
 
                 // --- Məzmun İdarəetməsi ---
 
-                // Səhifələr
+                // Səhifələr (PageController tam aktivdir)
                 Route::resource('pages', PageController::class);
 
-                Route::prefix('pages')->name('pages.')->group(function() {
-                    Route::get('/', function() { return 'Səhifələr Siyahısı'; })->name('index');
-                    Route::get('/create', function() { return 'Yeni Səhifə'; })->name('create');
-                });
-
-                Route::get('menus', function() { return 'Menyular'; })->name('menus.index');
+                // Menyu İdarəetməsi (MenuController tam aktivdir)
+                Route::resource('menus', MenuController::class);
+                Route::post('menus/sort', [MenuController::class, 'sort'])->name('menus.sort');
 
                 // Yan Panellər (Sidebars)
                 Route::get('sidebars', [SidebarController::class, 'index'])->name('sidebars.index');
                 Route::get('sidebars/{id}/edit', [SidebarController::class, 'edit'])->name('sidebars.edit');
                 Route::put('sidebars/{id}', [SidebarController::class, 'update'])->name('sidebars.update');
 
-                // Paylaşımlar
+                // Paylaşımlar (Blog)
                 Route::resource('posts', PostController::class);
                 Route::resource('categories', CategoryController::class);
                 Route::resource('tags', TagController::class);
@@ -110,8 +105,6 @@ Route::group(
                     Route::get('/doctors', [CommentController::class, 'index'])->name('doctors');
                     Route::get('/blogs', [CommentController::class, 'index'])->name('blogs');
                     Route::get('/products', [CommentController::class, 'index'])->name('products');
-
-                    // Ortaq əməliyyatlar
                     Route::post('/reply', [CommentController::class, 'reply'])->name('reply');
                     Route::put('/{id}/status', [CommentController::class, 'updateStatus'])->name('status');
                     Route::delete('/{id}', [CommentController::class, 'destroy'])->name('destroy');
@@ -164,10 +157,8 @@ Route::group(
                 Route::prefix('settings')->name('settings.')->group(function() {
                     Route::get('site', [SettingController::class, 'site'])->name('site');
                     Route::put('site', [SettingController::class, 'update'])->name('update');
-
                     Route::get('general', [SettingController::class, 'general'])->name('general');
                     Route::put('general', [SettingController::class, 'generalUpdate'])->name('general.update');
-
                     Route::get('smtp', [SettingController::class, 'smtp'])->name('smtp');
                     Route::put('smtp', [SettingController::class, 'smtpUpdate'])->name('smtp.update');
                 });
@@ -179,7 +170,7 @@ Route::group(
                     Route::get('shared', [ApiController::class, 'shared'])->name('shared');
                 });
 
-                // Sistem Alətləri (Keş və Baxım)
+                // Sistem Alətləri
                 Route::prefix('tools')->name('tools.')->group(function() {
                     Route::get('cache', [ToolController::class, 'cacheIndex'])->name('cache');
                     Route::get('cache/clear/{type}', [ToolController::class, 'cacheClear'])->name('cache.clear');
@@ -192,13 +183,10 @@ Route::group(
                 Route::post('logs/block', [LogController::class, 'blockIp'])->name('logs.block');
                 Route::delete('logs/unblock/{id}', [LogController::class, 'unblockIp'])->name('logs.unblock');
 
-                // Update & Backup (SystemController)
+                // Update & Backup
                 Route::prefix('system')->name('system.')->group(function() {
-                    // Update
                     Route::get('update', [SystemController::class, 'updateIndex'])->name('update');
                     Route::post('update', [SystemController::class, 'updateStore'])->name('update.store');
-
-                    // Backup
                     Route::get('backups', [SystemController::class, 'backupsIndex'])->name('backups');
                     Route::post('backups', [SystemController::class, 'backupStore'])->name('backups.store');
                     Route::get('backups/download/{filename}', [SystemController::class, 'backupDownload'])->name('backups.download');
