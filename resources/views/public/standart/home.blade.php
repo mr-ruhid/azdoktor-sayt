@@ -35,7 +35,7 @@
                 <div class="row g-3">
                     {{-- Həkim Adı --}}
                     <div class="col-lg-3 col-md-6">
-                        <label class="form-label text-white small fw-bold mb-1 ms-1">Həkim Adı</label>
+                        <label class="form-label text-white small fw-bold mb-1 ms-1">{{ __('home.doctor_name_label', ['default' => 'Həkim Adı']) }}</label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-white border-0 text-primary"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control border-0 fs-6" placeholder="{{ __('home.search_doctor_placeholder', ['default' => 'Həkim adı axtar...']) }}">
@@ -44,7 +44,7 @@
 
                     {{-- İxtisas --}}
                     <div class="col-lg-3 col-md-6">
-                        <label class="form-label text-white small fw-bold mb-1 ms-1">İxtisas</label>
+                        <label class="form-label text-white small fw-bold mb-1 ms-1">{{ __('home.specialty_label', ['default' => 'İxtisas']) }}</label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-white border-0 text-primary"><i class="fas fa-stethoscope"></i></span>
                             <select class="form-select border-0 fs-6 cursor-pointer">
@@ -60,7 +60,7 @@
 
                     {{-- Klinika --}}
                     <div class="col-lg-3 col-md-6">
-                        <label class="form-label text-white small fw-bold mb-1 ms-1">Klinika</label>
+                        <label class="form-label text-white small fw-bold mb-1 ms-1">{{ __('home.clinic_label', ['default' => 'Klinika']) }}</label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-white border-0 text-primary"><i class="fas fa-hospital"></i></span>
                             <select class="form-select border-0 fs-6 cursor-pointer">
@@ -76,7 +76,7 @@
 
                     {{-- Məkan --}}
                     <div class="col-lg-3 col-md-6">
-                        <label class="form-label text-white small fw-bold mb-1 ms-1">Məkan</label>
+                        <label class="form-label text-white small fw-bold mb-1 ms-1">{{ __('home.location_label', ['default' => 'Məkan']) }}</label>
                         <button type="button" class="btn btn-light w-100 btn-lg d-flex align-items-center justify-content-between border-0 text-start text-muted fs-6" onclick="getLocation()">
                             <span><i class="fas fa-map-marker-alt me-2 text-danger"></i> {{ __('home.near_me', ['default' => 'Mənə yaxın']) }}</span>
                             <span class="badge bg-secondary text-white small-badge" id="distance-badge">{{ __('home.not_selected', ['default' => 'Yoxdur']) }}</span>
@@ -96,8 +96,8 @@
         </div>
     </div>
 
-    {{-- Dalğa Effekti (SVG Separator) --}}
-    <div class="position-absolute bottom-0 start-0 w-100 overflow-hidden" style="line-height: 0; z-index: 3;">
+    {{-- Dalğa Effekti (SVG Separator) - Düzəliş edildi: bottom: -1px --}}
+    <div class="position-absolute start-0 w-100 overflow-hidden" style="bottom: -1px; line-height: 0; z-index: 3;">
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" style="width: 100%; height: 50px; fill: #f8f9fa; display: block;">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
         </svg>
@@ -108,7 +108,7 @@
 <div class="container pb-5 pt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-5">
         <div>
-            <h6 class="text-primary fw-bold text-uppercase ls-1 mb-2">Peşəkar Heyət</h6>
+            <h6 class="text-primary fw-bold text-uppercase ls-1 mb-2">{{ __('home.professional_staff', ['default' => 'Peşəkar Heyət']) }}</h6>
             <h2 class="fw-bold m-0 text-dark display-6">{{ __('home.popular_doctors', ['default' => 'Məşhur Həkimlər']) }}</h2>
         </div>
         <a href="#" class="btn btn-outline-primary rounded-pill px-4 fw-bold mt-3 mt-md-0 group-hover-arrow">
@@ -124,19 +124,17 @@
                     {{-- Favorit & Reytinq (Image Overlay) --}}
                     <div class="position-relative">
                         <div class="doctor-img-wrapper">
-                            {{-- REAL DATA: Həkim şəkli --}}
                             <img src="{{ $doctor->getFirstMediaUrl('avatar') ?: 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png' }}"
                                  class="card-img-top doctor-img"
                                  alt="{{ $doctor->name }}">
                         </div>
 
-                        {{-- REAL DATA: Üst Reytinq Etiketi --}}
                         <div class="position-absolute top-0 w-100 p-3 d-flex justify-content-between align-items-start z-2">
                             <span class="badge {{ $doctor->rating_avg > 0 ? 'bg-warning text-dark' : 'bg-light text-muted' }} fw-bold shadow-sm">
                                 @if($doctor->rating_avg > 0)
                                     <i class="fas fa-star me-1"></i> {{ number_format($doctor->rating_avg, 1) }}
                                 @else
-                                    <i class="far fa-star me-1"></i> Yeni
+                                    <i class="far fa-star me-1"></i> {{ __('home.new', ['default' => 'Yeni']) }}
                                 @endif
                             </span>
                             <button class="btn btn-light btn-sm rounded-circle shadow-sm fav-btn">
@@ -170,31 +168,23 @@
                         <hr class="opacity-10 my-3">
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            {{-- REAL DATA: Uzaqlıq (Məkan seçiləndə işləyir) --}}
                             <div class="d-flex align-items-center text-muted small distance-info" data-lat="{{ $doctor->clinic->lat ?? 0 }}" data-lng="{{ $doctor->clinic->lng ?? 0 }}">
                                 <div class="icon-circle bg-light text-danger me-2">
                                     <i class="fas fa-map-marker-alt"></i>
                                 </div>
                                 <span class="fw-bold text-dark me-1 dist-val">--</span> km
                             </div>
-
-                            {{-- REAL DATA: Ulduzlar və Rəy Sayı --}}
-                            <div class="text-warning small" title="{{ $doctor->review_count ?? 0 }} rəy">
-                                @php
-                                    $rating = round($doctor->rating_avg);
-                                @endphp
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $rating ? '' : 'text-muted opacity-25' }}"></i>
-                                @endfor
-                                <span class="text-muted ms-1 small">({{ $doctor->review_count ?? 0 }})</span>
+                            <div class="text-muted small">
+                                <i class="fas fa-user-friends me-1 text-info"></i> {{ __('home.patient_count', ['default' => '120+ Pasiyent']) }}
                             </div>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <a href="#" class="btn btn-primary rounded-pill fw-bold py-2 shadow-sm btn-hover-effect">
+                            {{-- Linkləri əlavə etdik: bookAppointment və doctorShow --}}
+                            <a href="{{ route('doctor.show', $doctor->id) }}" class="btn btn-primary rounded-pill fw-bold py-2 shadow-sm btn-hover-effect">
                                 {{ __('home.book_appointment', ['default' => 'Randevu Al']) }}
                             </a>
-                            <a href="#" class="btn btn-light rounded-pill btn-sm text-muted">
+                            <a href="{{ route('doctor.show', $doctor->id) }}" class="btn btn-light rounded-pill btn-sm text-muted">
                                 {{ __('home.view_profile', ['default' => 'Profilə Bax']) }}
                             </a>
                         </div>
@@ -208,7 +198,7 @@
                         <i class="fas fa-user-md fa-3x"></i>
                     </div>
                     <h4 class="text-muted fw-bold">{{ __('home.no_doctors_found', ['default' => 'Hələlik həkim yoxdur.']) }}</h4>
-                    <p class="text-muted mb-0">Zəhmət olmasa daha sonra yoxlayın və ya axtarış parametrlərini dəyişin.</p>
+                    <p class="text-muted mb-0">{{ __('home.check_later_text', ['default' => 'Zəhmət olmasa daha sonra yoxlayın və ya axtarış parametrlərini dəyişin.']) }}</p>
                 </div>
             </div>
         @endforelse

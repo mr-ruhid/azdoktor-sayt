@@ -11,10 +11,18 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    /**
+     * İstifadəçilərin Siyahısı
+     * Həkimlər (role_type = 2) burada görünmür.
+     */
     public function index()
     {
-        // Özündən başqa hamısını göstər (və ya hamısını)
-        $users = User::with('roles')->latest()->paginate(15);
+        // Yalnız User (0) və Admin (1) olanları gətir
+        $users = User::whereIn('role_type', [0, 1])
+                     ->with('roles')
+                     ->latest()
+                     ->paginate(15);
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -28,19 +36,30 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
             'password' => 'required|string|min:8',
-            'role' => 'required|exists:roles,name',
+            'role_type' => 'required|integer|in:0,1', // 0=User, 1=Admin
+            // 'role' => 'exists:roles,name', // Əgər Spatie rolu da seçilirsə
         ]);
 
         $user = User::create([
             'name' => $request->name,
+            'surname' => $request->surname,
             'email' => $request->email,
+            'phone' => $request->phone,
+            'birth_date' => $request->birth_date,
+            'role_type' => $request->role_type,
             'password' => Hash::make($request->password),
+            'email_verified_at' => now(), // Admin yaradırsa təsdiqlənmiş sayılır
         ]);
 
-        // Rol təyin et
-        $user->assignRole($request->role);
+        // Spatie Rolu (Opsional: Əgər formdan gəlirsə)
+        if ($request->has('role')) {
+            $user->assignRole($request->role);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'İstifadəçi yaradıldı.');
     }
@@ -58,12 +77,19 @@ class UserController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$id,
-            'role' => 'required|exists:roles,name',
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'role_type' => 'required|integer|in:0,1',
         ]);
 
         $user->name = $request->name;
+        $user->surname = $request->surname;
         $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->birth_date = $request->birth_date;
+        $user->role_type = $request->role_type;
 
         // Şifrə yalnız dolu göndərilibsə dəyiş
         if ($request->filled('password')) {
@@ -73,8 +99,10 @@ class UserController extends Controller
 
         $user->save();
 
-        // Rolu yenilə
-        $user->syncRoles([$request->role]);
+        // Rolu yenilə (Spatie)
+        if ($request->has('role')) {
+            $user->syncRoles([$request->role]);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'İstifadəçi məlumatları yeniləndi.');
     }
@@ -87,7 +115,12 @@ class UserController extends Controller
 
         $user = User::findOrFail($id);
 
-        // Həkimi varsa əlaqəni kəs (Həkim silinmir, sadəcə user_id null olur)
+        // Həkimləri buradan silmək olmaz (təhlükəsizlik üçün)
+        if ($user->role_type == 2) {
+             return redirect()->back()->with('error', 'Həkimləri yalnız Həkimlər bölməsindən silə bilərsiniz.');
+        }
+
+        // Əlaqəli məlumatları təmizləmək (opsional)
         if ($user->doctor) {
             $user->doctor->update(['user_id' => null]);
         }

@@ -13,49 +13,58 @@ class Product extends Model
         'category_id',
         'name',
         'slug',
-        'description',
         'short_description',
-        // SEO Fields (YENİ)
-        'seo_title',
-        'seo_description',
-        'seo_keywords',
-        // Digər
-        'sku',
+        'description',
         'price',
         'sale_price',
-        'stock_quantity',
-        'stock_status',
-        'image',
-        'gallery',
+        'stock_quantity', // DÜZƏLİŞ: 'stock' yerinə 'stock_quantity' (Forma uyğun)
+        'sku',
+        'image', // Şəkil sütunu
         'status',
-        'is_featured'
+        'seo_title',
+        'seo_description',
+        'seo_keywords'
     ];
 
-    // Bu sahələr tərcümə olunacaq
+    // Tərcümə olunan sahələr
     public $translatable = [
         'name',
-        'description',
         'short_description',
-        'seo_title',        // YENİ
-        'seo_description',  // YENİ
-        'seo_keywords'      // YENİ
+        'description',
+        'seo_title',
+        'seo_description',
+        'seo_keywords'
     ];
 
     protected $casts = [
-        'gallery' => 'array',
         'status' => 'boolean',
-        'is_featured' => 'boolean',
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
+        'stock_quantity' => 'integer', // DÜZƏLİŞ: 'stock' yerinə 'stock_quantity'
     ];
 
+    // Kateqoriya Əlaqəsi
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function tags()
+    /**
+     * View tərəfində getFirstMediaUrl xətasını düzəltmək üçün.
+     * 'image' sütunundakı şəkli qaytarır.
+     */
+    public function getFirstMediaUrl($collectionName = 'default')
     {
-        return $this->belongsToMany(Tag::class, 'product_tag');
+        if (!empty($this->image)) {
+            // Əgər tam URL-dirsə (http ilə başlayırsa)
+            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+                return $this->image;
+            }
+            // Əgər lokal fayldırsa (public qovluğuna əsasən)
+            return asset($this->image);
+        }
+
+        // Şəkil yoxdursa null qaytarır
+        return null;
     }
 }

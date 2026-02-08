@@ -23,8 +23,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>Ad Soyad / Yaş</th>
-                            <th>İxtisas / Vəzifə</th>
+                            <th>Ad Soyad</th>
+                            <th>İxtisas / Titul</th>
+                            <th>Klinika</th>
                             <th>Əlaqə Məlumatları</th>
                             <th>CV Faylı</th>
                             <th>Tarix</th>
@@ -38,20 +39,34 @@
                             <td class="px-3">{{ $loop->iteration }}</td>
                             <td>
                                 <div class="fw-bold">{{ $req->full_name }}</div>
-                                <small class="text-muted">{{ $req->age ? $req->age . ' yaş' : 'Qeyd olunmayıb' }}</small>
                             </td>
                             <td>
-                                <div class="text-dark">{{ $req->specialty ?? '-' }}</div>
-                                <small class="text-muted">{{ $req->position ?? '-' }} / {{ $req->clinic ?? '-' }}</small>
+                                {{-- İxtisas --}}
+                                @if($req->specialty)
+                                    <div class="text-dark fw-medium">
+                                        {{ $req->specialty->getTranslation('name', app()->getLocale()) }}
+                                    </div>
+                                @else
+                                    <div class="text-muted">-</div>
+                                @endif
+
+                                {{-- Titul --}}
+                                <small class="text-muted">{{ $req->title ?? '-' }}</small>
+                            </td>
+                            <td>
+                                {{-- Klinika --}}
+                                @if($req->clinic)
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fas fa-hospital me-1 text-secondary"></i>
+                                        {{ $req->clinic->getTranslation('name', app()->getLocale()) }}
+                                    </span>
+                                @else
+                                    <span class="text-muted small">Qeyd olunmayıb</span>
+                                @endif
                             </td>
                             <td>
                                 <div><i class="fas fa-phone-alt text-muted me-1 small"></i> {{ $req->phone }}</div>
                                 <div class="small text-muted"><i class="fas fa-envelope me-1 small"></i> {{ $req->email }}</div>
-                                @if($req->contact_method)
-                                    <span class="badge bg-light text-dark border mt-1">
-                                        <i class="fas fa-comment-dots me-1"></i> {{ $req->contact_method }}
-                                    </span>
-                                @endif
                             </td>
                             <td>
                                 @if($req->cv_file)
@@ -85,8 +100,8 @@
                                         <li>
                                             <form action="{{ route('admin.doctor_requests.status', $req->id) }}" method="POST">
                                                 @csrf @method('PUT')
-                                                <input type="hidden" name="status" value="viewed">
-                                                <button class="dropdown-item"><i class="fas fa-eye text-info me-2"></i> Baxıldı</button>
+                                                <input type="hidden" name="status" value="approved">
+                                                <button class="dropdown-item fw-bold text-primary"><i class="fas fa-user-check me-2"></i> Təsdiqlə (Hesab Yarat)</button>
                                             </form>
                                         </li>
                                         <li>
@@ -108,7 +123,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3 text-gray-300"></i>
                                 <p>Hələ heç bir müraciət daxil olmayıb.</p>
                             </td>
@@ -117,9 +132,13 @@
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $requests->links('pagination::bootstrap-5') }}
-            </div>
+
+            {{-- Paginasiya --}}
+            @if($requests->hasPages())
+                <div class="d-flex justify-content-center mt-3 mb-3">
+                    {{ $requests->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

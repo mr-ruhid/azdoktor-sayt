@@ -181,7 +181,6 @@
         {{-- Dil Dəyişdirici --}}
         <div class="dropdown">
             <a href="#" class="lang-btn dropdown-toggle" data-bs-toggle="dropdown">
-                <img src="{{ asset('vendor/blade-flags/country-' . (app()->getLocale() == 'en' ? 'gb' : app()->getLocale()) . '.svg') }}" width="18" class="me-1" onerror="this.style.display='none'">
                 {{ strtoupper(app()->getLocale()) }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -279,7 +278,7 @@
             {{-- Profil / Giriş --}}
             @guest
                 <div class="d-grid gap-2">
-                    <a href="{{ route('login') }}" class="btn btn-primary">Giriş</a>
+                    <a href="{{ route('login') }}" class="btn btn-primary">{{ __('nav.login', ['default' => 'Giriş']) }}</a>
                 </div>
             @else
                 <div class="dropdown">
@@ -289,16 +288,17 @@
                         </div>
                         <div class="overflow-hidden">
                             <div class="fw-bold text-truncate" style="max-width: 140px;">{{ Auth::user()->name }}</div>
-                            <small class="text-muted">Profilim</small>
+                            <small class="text-muted">{{ __('nav.profile', ['default' => 'Profilim']) }}</small>
                         </div>
                     </a>
                     <ul class="dropdown-menu w-100 shadow">
-                        <li><a class="dropdown-item" href="#">Tənzimləmələr</a></li>
+                        {{-- YENİLƏNDİ: Tənzimləmələr linki --}}
+                        <li><a class="dropdown-item" href="{{ route('user.dashboard') }}">{{ __('nav.settings', ['default' => 'Tənzimləmələr']) }}</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button class="dropdown-item text-danger">Çıxış</button>
+                                <button class="dropdown-item text-danger">{{ __('nav.logout', ['default' => 'Çıxış']) }}</button>
                             </form>
                         </li>
                     </ul>
@@ -316,7 +316,7 @@
         <footer class="bg-white text-center py-4 border-top mt-auto d-none d-lg-block">
             <div class="container">
                 <small class="text-muted">
-                    &copy; {{ date('Y') }} {{ $settings->site_name ?? 'AzDoktor' }}. Bütün hüquqlar qorunur.
+                    &copy; {{ date('Y') }} {{ $settings->site_name ?? 'AzDoktor' }}. {{ __('nav.copyright', ['default' => 'Bütün hüquqlar qorunur.']) }}
                 </small>
                 @if(isset($settings->social_links))
                     <div class="mt-2">
@@ -336,14 +336,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-body p-4">
-                    <h5 class="mb-3 fw-bold">Axtarış</h5>
+                    <h5 class="mb-3 fw-bold">{{ __('nav.search', ['default' => 'Axtarış']) }}</h5>
                     <form action="#" method="GET">
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" class="form-control bg-light border-0" placeholder="Axtar...">
+                            <input type="text" class="form-control bg-light border-0" placeholder="{{ __('nav.search_placeholder', ['default' => 'Axtar...']) }}">
                         </div>
                         <div class="d-grid mt-3">
-                            <button class="btn btn-primary">Axtar</button>
+                            <button class="btn btn-primary">{{ __('nav.search_btn', ['default' => 'Axtar']) }}</button>
                         </div>
                     </form>
                 </div>

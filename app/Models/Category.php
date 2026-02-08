@@ -9,13 +9,32 @@ class Category extends Model
 {
     use HasTranslations;
 
-    protected $fillable = ['name', 'slug', 'type', 'status'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'type', // 'post' və ya 'product'
+        'status'
+    ];
 
     public $translatable = ['name'];
 
-    // Paylaşımlarla əlaqə (Gələcəkdə Post modelini yazanda lazım olacaq)
-    // public function posts()
-    // {
-    //     return $this->hasMany(Post::class);
-    // }
+    protected $casts = [
+        'status' => 'boolean',
+    ];
+
+    /**
+     * Blog Məqalələri ilə əlaqə
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    /**
+     * Məhsullar ilə əlaqə
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

@@ -64,14 +64,20 @@
                         {{-- Hover Actions (Üzərinə gələndə çıxan düymələr) --}}
                         <div class="product-actions position-absolute start-0 w-100 h-100 d-flex justify-content-center align-items-center"
                              style="background: rgba(0,0,0,0.4); top: 100%; transition: top 0.3s;">
-                            {{-- Ətraflı --}}
-                            <a href="#" class="btn btn-light rounded-circle mx-2" title="{{ __('shop.view_details', ['default' => 'Ətraflı Bax']) }}">
+
+                            {{-- Ətraflı düyməsi (Link əlavə edildi) --}}
+                            <a href="{{ route('shop.show', $product->slug) }}" class="btn btn-light rounded-circle mx-2" title="{{ __('shop.view_details', ['default' => 'Ətraflı Bax']) }}">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            {{-- Səbət --}}
-                            <button class="btn btn-primary rounded-circle mx-2" title="{{ __('shop.add_to_cart', ['default' => 'Səbətə At']) }}">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
+
+                            {{-- Səbət düyməsi (Form əlavə edildi) --}}
+                            <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $product->id }}">
+                                <button type="submit" class="btn btn-primary rounded-circle mx-2" title="{{ __('shop.add_to_cart', ['default' => 'Səbətə At']) }}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -84,9 +90,9 @@
                             </small>
                         @endif
 
-                        {{-- Məhsul Adı --}}
+                        {{-- Məhsul Adı (Link əlavə edildi) --}}
                         <h6 class="card-title fw-bold text-truncate mb-3">
-                            <a href="#" class="text-dark text-decoration-none">
+                            <a href="{{ route('shop.show', $product->slug) }}" class="text-dark text-decoration-none">
                                 {{ $product->getTranslation('name', app()->getLocale()) }}
                             </a>
                         </h6>
@@ -118,13 +124,23 @@
         @endforelse
     </div>
 
-    {{-- Pagination (Səhifələmə) - Bootstrap 5 Şablonu ilə --}}
+    {{-- Pagination (Səhifələmə) --}}
     @if($products->hasPages())
         <div class="d-flex justify-content-center mt-5 custom-pagination">
             {{ $products->links('pagination::bootstrap-5') }}
         </div>
     @endif
 </div>
+
+{{-- FLOATING CART BUTTON (Üzən Səbət Düyməsi) --}}
+<a href="{{ route('cart.index') }}" class="floating-cart-btn shadow-lg" title="{{ __('shop.cart', ['default' => 'Səbət']) }}">
+    <i class="fas fa-shopping-cart"></i>
+    @if(session('cart') && count(session('cart')) > 0)
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+            {{ count(session('cart')) }}
+        </span>
+    @endif
+</a>
 
 {{-- Səhifədaxili CSS --}}
 <style>
@@ -163,6 +179,40 @@
     .custom-pagination .page-link:hover {
         background-color: #e9ecef;
         color: #0d6efd;
+    }
+
+    /* Floating Cart Button Style */
+    .floating-cart-btn {
+        position: fixed;
+        bottom: 30px; /* PC üçün default */
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        z-index: 1060; /* Navbar-dan yuxarıda olması üçün */
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .floating-cart-btn:hover {
+        transform: scale(1.1);
+        color: white;
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.4) !important;
+    }
+
+    /* Mobil üçün tənzimləmə */
+    @media (max-width: 991.98px) {
+        .floating-cart-btn {
+            bottom: 90px; /* Mobil navbar (70px) + boşluq (20px) */
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
     }
 </style>
 @endsection
