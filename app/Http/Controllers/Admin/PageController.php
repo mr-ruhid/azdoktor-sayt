@@ -52,6 +52,20 @@ class PageController extends Controller
                 'ru' => 'Магазин',
                 'ar' => 'المتجر'
             ],
+            // YENİ: FAQ Səhifəsi
+            'faq' => [
+                'az' => 'Tez-tez Verilən Suallar',
+                'en' => 'FAQ',
+                'ru' => 'FAQ',
+                'ar' => 'أسئلة مكررة'
+            ],
+            // YENİ: Qiymətlər Səhifəsi
+            'pricing' => [
+                'az' => 'Qiymətlər',
+                'en' => 'Pricing',
+                'ru' => 'Цены',
+                'ar' => 'التسعير'
+            ],
         ];
 
         // 3. Yoxlayırıq: əgər standart səhifələr yoxdursa, yaradırıq
@@ -120,8 +134,7 @@ class PageController extends Controller
     }
 
     /**
-     * YENİLƏMƏ METODU (Ən Vacib Hissə)
-     * Burada "Haqqımızda" səhifəsinin blokları işlənir.
+     * YENİLƏMƏ METODU
      */
     public function update(Request $request, $id)
     {
@@ -157,34 +170,41 @@ class PageController extends Controller
             }
         }
 
-        // B) HAQQIMIZDA SƏHİFƏSİ - DİNAMİK BLOKLAR
+        // B) HAQQIMIZDA SƏHİFƏSİ
         if ($page->slug == 'about') {
             $sections = [];
-
-            // Yalnız formda sections varsa emal edirik
             if ($request->has('sections')) {
                 foreach ($request->sections as $key => $sectionData) {
-                    // Mövcud data strukturunu qururuq
                     $section = [
                         'title' => $sectionData['title'] ?? [],
                         'content' => $sectionData['content'] ?? [],
-                        'image' => $sectionData['old_image'] ?? null, // Əgər yeni şəkil yoxdursa, köhnəni saxla
+                        'image' => $sectionData['old_image'] ?? null,
                     ];
-
-                    // Yeni şəkil yüklənibsə, onu əvəz et
                     if ($request->hasFile("sections.$key.image")) {
                         $section['image'] = $this->uploadFile($request->file("sections.$key.image"), 'pages/about');
                     }
-
                     $sections[] = $section;
                 }
             }
-
-            // Hazır massivi meta-ya yazırıq
             $meta['sections'] = $sections;
         }
 
-        // Ümumi Səhifə Şəkli (SEO Image və ya Banner)
+        // C) FAQ SƏHİFƏSİ - DİNAMİK SUAL-CAVAB (YENİ)
+        if ($page->slug == 'faq') {
+            $faqItems = [];
+            // Əgər formdan gələn datada faq_items varsa
+            if ($request->has('faq_items')) {
+                foreach ($request->faq_items as $key => $item) {
+                    $faqItems[] = [
+                        'question' => $item['question'] ?? [], // Tərcüməli
+                        'answer' => $item['answer'] ?? [],     // Tərcüməli
+                    ];
+                }
+            }
+            $meta['faq_items'] = $faqItems;
+        }
+
+        // Ümumi Səhifə Şəkli
         if ($request->hasFile('image')) {
             $page->image = $this->uploadFile($request->file('image'), 'pages');
         }
@@ -210,7 +230,6 @@ class PageController extends Controller
     // Şəkil yükləmək üçün köməkçi funksiya
     private function uploadFile($file, $folder)
     {
-        // Unikal ad yaradırıq ki, çakışma olmasın
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $file->move(public_path('uploads/' . $folder), $filename);
         return 'uploads/' . $folder . '/' . $filename;

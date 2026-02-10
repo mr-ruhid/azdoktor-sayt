@@ -8,28 +8,14 @@
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+            <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
     <div class="card shadow mb-4">
-        <div class="card-header py-0 border-bottom-0 bg-white">
-            <!-- TABLAR: Məhsullar vs Xidmətlər -->
-            <ul class="nav nav-tabs card-header-tabs" id="orderTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link {{ $type == 'product' ? 'active font-weight-bold text-primary' : 'text-muted' }}"
-                       href="{{ route('admin.orders.index', ['type' => 'product']) }}">
-                       <i class="fas fa-box me-1"></i> Məhsul Sifarişləri
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ $type == 'service' ? 'active font-weight-bold text-primary' : 'text-muted' }}"
-                       href="{{ route('admin.orders.index', ['type' => 'service']) }}">
-                       <i class="fas fa-briefcase me-1"></i> Xidmət Sifarişləri
-                    </a>
-                </li>
-            </ul>
+        <div class="card-header py-3 bg-white">
+            <h6 class="m-0 font-weight-bold text-primary">Gələn Sifarişlər</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -39,7 +25,7 @@
                             <th>Sifariş №</th>
                             <th>Müştəri</th>
                             <th>Tarix</th>
-                            <th>Ümumi Məbləğ</th>
+                            <th>Məbləğ</th>
                             <th>Ödəniş</th>
                             <th>Status</th>
                             <th class="text-end pe-4">Əməliyyatlar</th>
@@ -48,10 +34,14 @@
                     <tbody>
                         @forelse($orders as $order)
                         <tr>
-                            <td class="fw-bold text-primary">#{{ $order->order_number }}</td>
+                            <td class="fw-bold text-primary">
+                                <a href="{{ route('admin.orders.show', $order->id) }}" class="text-decoration-none">
+                                    #{{ $order->order_number }}
+                                </a>
+                            </td>
                             <td>
                                 <div class="fw-bold">{{ $order->customer_name }}</div>
-                                <div class="small text-muted">{{ $order->customer_phone }}</div>
+                                <div class="small text-muted"><i class="fas fa-phone-alt me-1"></i> {{ $order->customer_phone }}</div>
                             </td>
                             <td>
                                 {{ $order->created_at->format('d.m.Y') }}
@@ -59,27 +49,31 @@
                             </td>
                             <td class="fw-bold">{{ $order->total }} ₼</td>
                             <td>
-                                @if($order->payment_status == 'paid')
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">Ödənilib</span>
-                                @else
-                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning">Ödənilməyib</span>
-                                @endif
-                                <div class="small text-muted mt-1">{{ ucfirst($order->payment_method) }}</div>
+                                <div class="d-flex flex-column">
+                                    @if($order->payment_status == 'paid')
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success mb-1" style="width: fit-content;">Ödənilib</span>
+                                    @else
+                                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning mb-1" style="width: fit-content;">Gözləyir</span>
+                                    @endif
+                                    <small class="text-muted">{{ $order->payment_method == 'card' ? 'Kartla' : 'Nağd' }}</small>
+                                </div>
                             </td>
                             <td>
                                 <span class="badge {{ $order->status_badge }}">{{ $order->status_label }}</span>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-info text-white me-1" title="Bax">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Sifarişi silmək istədiyinizə əminsiniz?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Sil">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-info text-white" title="Detallar">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu sifarişi silmək istədiyinizə əminsiniz?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger border-start-0" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -93,9 +87,13 @@
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-center mt-4">
-                {{ $orders->links('pagination::bootstrap-5') }}
-            </div>
+
+            {{-- Paginasiya --}}
+            @if($orders->hasPages())
+                <div class="d-flex justify-content-center mt-4 mb-3">
+                    {{ $orders->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

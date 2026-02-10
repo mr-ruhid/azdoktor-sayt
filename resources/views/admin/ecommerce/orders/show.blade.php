@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0 text-gray-800">Sifariş #{{ $order->order_number }}</h3>
-        <a href="{{ route('admin.orders.index', ['type' => $order->type]) }}" class="btn btn-secondary shadow-sm">
+        <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Geri
         </a>
     </div>
@@ -36,7 +36,13 @@
                                 <tr>
                                     <td>
                                         <div class="fw-bold">{{ $item->name }}</div>
-                                        <small class="text-muted">{{ class_basename($item->orderable_type) }}</small>
+                                        <small class="text-muted">
+                                            @if($item->orderable_type)
+                                                {{ class_basename($item->orderable_type) == 'Product' ? 'Məhsul' : 'Xidmət' }}
+                                            @else
+                                                Məhsul
+                                            @endif
+                                        </small>
                                     </td>
                                     <td class="text-center">{{ $item->price }} ₼</td>
                                     <td class="text-center">{{ $item->quantity }}</td>
@@ -91,9 +97,9 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Ödəniş Statusu</label>
                             <select name="payment_status" class="form-select">
-                                <option value="unpaid" {{ $order->payment_status == 'unpaid' ? 'selected' : '' }}>Ödənilməyib</option>
+                                <option value="pending" {{ $order->payment_status == 'pending' ? 'selected' : '' }}>Ödənilməyib</option>
                                 <option value="paid" {{ $order->payment_status == 'paid' ? 'selected' : '' }}>Ödənilib</option>
-                                <option value="refunded" {{ $order->payment_status == 'refunded' ? 'selected' : '' }}>Geri qaytarılıb</option>
+                                <option value="failed" {{ $order->payment_status == 'failed' ? 'selected' : '' }}>Uğursuz / Ləğv</option>
                             </select>
                         </div>
 

@@ -17,8 +17,12 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\Service;
+use App\Models\Order;      // YENİ
+use App\Models\OrderItem;  // YENİ
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth; // YENİ
 use Carbon\Carbon;
+use Illuminate\Support\Str; // YENİ
 
 class PublicController extends Controller
 {
@@ -285,6 +289,88 @@ class PublicController extends Controller
             }
             session()->flash('success', 'Məhsul səbətdən silindi');
         }
+    }
+
+    // --- CHECKOUT (SİFARİŞ RƏSMİLƏŞDİRMƏ) - YENİ ---
+
+    public function checkout()
+    {
+        // Səbət boşdursa mağazaya at
+        if(!session('cart') || count(session('cart')) == 0) {
+            return redirect()->route('shop')->with('error', 'Səbətiniz boşdur.');
+        }
+
+        $page = new Page();
+        $page->setTranslation('title', app()->getLocale(), 'Sifarişi Rəsmiləşdir');
+
+        return view('public.standart.checkout', compact('page'));
+    }
+
+    public function placeOrder(Request $request)
+    {
+        $cart = session('cart');
+
+        // Səbət boşdursa
+        if(!$cart || count($cart) == 0) {
+            return redirect()->route('shop')->with('error', 'Səbətiniz boşdur.');
+        }
+
+        // Validasiya
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
+            'address' => 'required|string',
+            'payment_method' => 'required|in:cash,card',
+        ]);
+
+        // Cəmi hesabla
+        $total = 0;
+        foreach($cart as $id => $details) {
+            $total += $details['price'] * $details['quantity'];
+        }
+
+        // Sifarişi yarat
+        $order = new Order();
+        $order->order_number = 'ORD-' . strtoupper(Str::random(10));
+        $order->user_id = Auth::id() ?? null;
+        $order->customer_name = $request->name . ' ' . $request->surname;
+        $order->customer_phone = $request->phone;
+        $order->customer_email = $request->email;
+        $order->customer_address = $request->address;
+        $order->note = $request->note;
+        $order->total = $total;
+        $order->subtotal = $total; // Endirim sistemi varsa dəyişə bilər
+        $order->discount = 0;
+        $order->payment_method = $request->payment_method;
+        $order->status = 'pending';
+        $order->save();
+
+        // Məhsulları sifarişə əlavə et
+        foreach($cart as $id => $details) {
+            $orderItem = new OrderItem();
+            $orderItem->order_id = $order->id;
+            // Polimorfik əlaqə (Hazırda yalnız Product üçün)
+            $orderItem->orderable_id = $id;
+            $orderItem->orderable_type = 'App\Models\Product';
+            $orderItem->name = $details['name'];
+            $orderItem->price = $details['price'];
+            $orderItem->quantity = $details['quantity'];
+            $orderItem->total = $details['price'] * $details['quantity'];
+            $orderItem->save();
+
+            // Stokdan çıxmaq (Opsional)
+            $product = Product::find($id);
+            if($product) {
+                $product->decrement('stock_quantity', $details['quantity']);
+            }
+        }
+
+        // Səbəti təmizlə
+        session()->forget('cart');
+
+        // Uğurlu səhifəyə və ya hesaba yönləndir
+        return redirect()->route('home')->with('success', 'Sifarişiniz uğurla qəbul edildi! Sifariş Nömrəsi: ' . $order->order_number);
     }
 
     // --- HƏKİM DETALLARI & REZERVASIYA ---

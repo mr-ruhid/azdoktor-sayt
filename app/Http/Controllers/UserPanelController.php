@@ -42,18 +42,15 @@ class UserPanelController extends Controller
     {
         $user = Auth::user();
 
-        // Həkimləri öz panelinə yönləndir
         if ($user->role_type == 2) {
             return redirect()->route('doctor.dashboard');
         }
 
-        // 1. Rezervasiyalarım
         $reservations = Reservation::where('user_id', $user->id)
             ->with('doctor')
             ->orderBy('reservation_date', 'desc')
             ->paginate(10, ['*'], 'reservations_page');
 
-        // 2. Sifarişlərim (Order modeli varsa)
         $orders = Order::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'orders_page');
@@ -89,5 +86,23 @@ class UserPanelController extends Controller
         $user->update($data);
 
         return redirect()->back()->with('success', 'Profil məlumatlarınız yeniləndi.');
+    }
+
+    /**
+     * YENİ: Sifariş Detalları
+     */
+    public function orderShow($id)
+    {
+        $user = Auth::user();
+
+        // Yalnız istifadəçinin öz sifarişi olmalıdır
+        $order = Order::where('user_id', $user->id)
+                      ->with('items') // Məhsulları da gətiririk
+                      ->findOrFail($id);
+
+        $page = new Page();
+        $page->setTranslation('title', app()->getLocale(), 'Sifariş #' . $order->order_number);
+
+        return view('user.order_details', compact('order', 'page'));
     }
 }
