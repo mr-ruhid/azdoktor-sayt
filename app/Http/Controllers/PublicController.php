@@ -17,12 +17,12 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\Service;
-use App\Models\Order;      // YENİ
-use App\Models\OrderItem;  // YENİ
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Auth; // YENİ
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Str; // YENİ
+use Illuminate\Support\Str;
 
 class PublicController extends Controller
 {
@@ -97,6 +97,26 @@ class PublicController extends Controller
         $page = Page::where('slug', 'contact')->first();
         if (!$page) { $page = new Page(); $page->setTranslation('title', 'az', 'Əlaqə'); }
         return view('public.standart.contact', compact('page'));
+    }
+
+    // --- YENİ ƏLAVƏ EDİLƏN METODLAR (FAQ və PRICING) ---
+
+    public function faq() {
+        $page = Page::where('slug', 'faq')->first();
+        if (!$page) {
+            $page = new Page();
+            $page->setTranslation('title', 'az', 'Sual-Cavab');
+        }
+        return view('public.standart.faq', compact('page'));
+    }
+
+    public function pricing() {
+        $page = Page::where('slug', 'pricing')->first();
+        if (!$page) {
+            $page = new Page();
+            $page->setTranslation('title', 'az', 'Qiymətlər');
+        }
+        return view('public.standart.pricing', compact('page'));
     }
 
     // --- KLİNİKALAR ---
@@ -291,11 +311,10 @@ class PublicController extends Controller
         }
     }
 
-    // --- CHECKOUT (SİFARİŞ RƏSMİLƏŞDİRMƏ) - YENİ ---
+    // --- CHECKOUT (SİFARİŞ RƏSMİLƏŞDİRMƏ) ---
 
     public function checkout()
     {
-        // Səbət boşdursa mağazaya at
         if(!session('cart') || count(session('cart')) == 0) {
             return redirect()->route('shop')->with('error', 'Səbətiniz boşdur.');
         }
@@ -310,12 +329,10 @@ class PublicController extends Controller
     {
         $cart = session('cart');
 
-        // Səbət boşdursa
         if(!$cart || count($cart) == 0) {
             return redirect()->route('shop')->with('error', 'Səbətiniz boşdur.');
         }
 
-        // Validasiya
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
@@ -324,13 +341,11 @@ class PublicController extends Controller
             'payment_method' => 'required|in:cash,card',
         ]);
 
-        // Cəmi hesabla
         $total = 0;
         foreach($cart as $id => $details) {
             $total += $details['price'] * $details['quantity'];
         }
 
-        // Sifarişi yarat
         $order = new Order();
         $order->order_number = 'ORD-' . strtoupper(Str::random(10));
         $order->user_id = Auth::id() ?? null;
@@ -340,17 +355,15 @@ class PublicController extends Controller
         $order->customer_address = $request->address;
         $order->note = $request->note;
         $order->total = $total;
-        $order->subtotal = $total; // Endirim sistemi varsa dəyişə bilər
+        $order->subtotal = $total;
         $order->discount = 0;
         $order->payment_method = $request->payment_method;
         $order->status = 'pending';
         $order->save();
 
-        // Məhsulları sifarişə əlavə et
         foreach($cart as $id => $details) {
             $orderItem = new OrderItem();
             $orderItem->order_id = $order->id;
-            // Polimorfik əlaqə (Hazırda yalnız Product üçün)
             $orderItem->orderable_id = $id;
             $orderItem->orderable_type = 'App\Models\Product';
             $orderItem->name = $details['name'];
@@ -359,17 +372,13 @@ class PublicController extends Controller
             $orderItem->total = $details['price'] * $details['quantity'];
             $orderItem->save();
 
-            // Stokdan çıxmaq (Opsional)
             $product = Product::find($id);
             if($product) {
                 $product->decrement('stock_quantity', $details['quantity']);
             }
         }
 
-        // Səbəti təmizlə
         session()->forget('cart');
-
-        // Uğurlu səhifəyə və ya hesaba yönləndir
         return redirect()->route('home')->with('success', 'Sifarişiniz uğurla qəbul edildi! Sifariş Nömrəsi: ' . $order->order_number);
     }
 

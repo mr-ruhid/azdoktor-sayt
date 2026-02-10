@@ -52,14 +52,12 @@ class PageController extends Controller
                 'ru' => 'Магазин',
                 'ar' => 'المتجر'
             ],
-            // YENİ: FAQ Səhifəsi
             'faq' => [
                 'az' => 'Tez-tez Verilən Suallar',
                 'en' => 'FAQ',
                 'ru' => 'FAQ',
                 'ar' => 'أسئلة مكررة'
             ],
-            // YENİ: Qiymətlər Səhifəsi
             'pricing' => [
                 'az' => 'Qiymətlər',
                 'en' => 'Pricing',
@@ -189,10 +187,9 @@ class PageController extends Controller
             $meta['sections'] = $sections;
         }
 
-        // C) FAQ SƏHİFƏSİ - DİNAMİK SUAL-CAVAB (YENİ)
+        // C) FAQ SƏHİFƏSİ - DİNAMİK SUAL-CAVAB
         if ($page->slug == 'faq') {
             $faqItems = [];
-            // Əgər formdan gələn datada faq_items varsa
             if ($request->has('faq_items')) {
                 foreach ($request->faq_items as $key => $item) {
                     $faqItems[] = [
@@ -202,6 +199,37 @@ class PageController extends Controller
                 }
             }
             $meta['faq_items'] = $faqItems;
+        }
+
+        // D) PRICING (QİYMƏTLƏR) SƏHİFƏSİ - YENİ ƏLAVƏ
+        if ($page->slug == 'pricing') {
+            // 1. İxtisaslar Siyahısı
+            $specialtiesList = [];
+            if ($request->has('specialties_list')) {
+                foreach ($request->specialties_list as $item) {
+                    $specialtiesList[] = [
+                        'name' => $item['name'] ?? [],
+                        'price' => $item['price'] ?? '',
+                    ];
+                }
+            }
+            $meta['specialties_list'] = $specialtiesList;
+
+            // 2. Paketlər
+            $packagesList = [];
+            if ($request->has('packages_list')) {
+                foreach ($request->packages_list as $item) {
+                    $packagesList[] = [
+                        'title' => $item['title'] ?? [],
+                        'description' => $item['description'] ?? [],
+                        'price' => $item['price'] ?? '',
+                    ];
+                }
+            }
+            $meta['packages_list'] = $packagesList;
+
+            // 3. Alt HTML
+            $meta['bottom_html'] = $request->bottom_html ?? [];
         }
 
         // Ümumi Səhifə Şəkli
