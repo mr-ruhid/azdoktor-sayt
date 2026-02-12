@@ -47,19 +47,33 @@
                     </div>
 
                     <div class="card-body p-3 d-flex flex-column">
-                        <h5 class="card-title text-truncate fw-bold text-dark">
+                        <h5 class="card-title text-truncate fw-bold text-dark mb-1">
                             {{ $clinic->getTranslation('name', app()->getLocale()) }}
                         </h5>
 
-                        <p class="small text-muted mb-3">
+                        <p class="small text-muted mb-3 flex-grow-1">
                             <i class="fas fa-map-marker-alt me-1 text-danger"></i>
                             {{ Str::limit($clinic->getTranslation('address', app()->getLocale()), 40) }}
                         </p>
 
+                        {{-- Telefon Nömrəsi (Varsa) --}}
+                        @if($clinic->phone)
+                            <div class="mb-3 text-center">
+                                <small class="text-muted d-block">{{ __('clinics.contact_number', ['default' => 'Əlaqə nömrəsi:']) }}</small>
+                                <span class="fw-bold text-dark">{{ $clinic->phone }}</span>
+                            </div>
+                        @endif
+
                         <div class="mt-auto d-grid">
-                            <a href="#" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">
-                                {{ __('clinics.book_appointment', ['default' => 'Randevu Al']) }}
-                            </a>
+                            @if($clinic->phone)
+                                <a href="tel:{{ $clinic->phone }}" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">
+                                    <i class="fas fa-phone-alt me-2"></i> {{ __('clinics.call_now', ['default' => 'Zəng Et']) }}
+                                </a>
+                            @else
+                                <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" disabled>
+                                    {{ __('clinics.no_phone', ['default' => 'Nömrə Yoxdur']) }}
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -75,7 +89,7 @@
         @endforelse
     </div>
 
-    {{-- Pagination (Səhifələmə) - Yenilənmiş --}}
+    {{-- Pagination (Səhifələmə) --}}
     @if($clinics->hasPages())
         <div class="d-flex justify-content-center mt-5 custom-pagination">
             {{ $clinics->links('pagination::bootstrap-5') }}
